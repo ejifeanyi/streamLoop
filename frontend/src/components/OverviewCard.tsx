@@ -28,6 +28,7 @@ import {
 	ChartTooltipContent,
 	ChartConfig,
 } from "@/components/ui/chart";
+import { useSession } from "next-auth/react";
 
 // Total Views Chart Data and Config
 const totalViewsData = [

@@ -13,7 +13,6 @@ const Sidebar = () => {
 		{ id: "accounts", name: "Accounts", icon: <User />, url: "/accounts" },
 		{ id: "go-live", name: "Go Live", icon: <RadioTower />, url: "/go-live" },
 		{ id: "settings", name: "Settings", icon: <Settings />, url: "/settings" },
-		{ id: "logout", name: "Logout", icon: <LogOut />, url: "#" },
 	];
 
 	return (

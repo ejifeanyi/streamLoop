@@ -3,10 +3,12 @@
 import React from "react";
 import Image from "next/image";
 import { ModeToggle } from "./ModeToggle";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 const Header = () => {
 	const { data: session } = useSession();
+	console.log("session: ", session);
+	console.log("image: ", session?.user?.picture);
 
 	return (
 		<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 md:px-8 lg:px-12 h-16 bg-card text-card-foreground border-b border-border shadow-sm">
@@ -23,7 +25,9 @@ const Header = () => {
 						{/* Profile Picture */}
 						<div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted overflow-hidden">
 							<Image
-								src={session.user?.image || "/path-to-default-profile-pic.jpg"}
+								src={
+									session.user?.picture || "/path-to-default-profile-pic.jpg"
+								}
 								alt="Profile"
 								width={40}
 								height={40}
