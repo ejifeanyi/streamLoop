@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import SessionProviderComponent from "./SessionProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const poppins = Poppins({
 	subsets: ["latin"],
@@ -24,17 +24,18 @@ export default function RootLayout({
 			lang="en"
 			suppressHydrationWarning
 		>
-			<body className={`${poppins.className} antialiased`}>
-				<SessionProviderComponent>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
-						{children}
-					</ThemeProvider>
-				</SessionProviderComponent>
+			<body
+				className={`${poppins.className} antialiased`}
+				suppressHydrationWarning
+			>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<AuthProvider>{children}</AuthProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);
