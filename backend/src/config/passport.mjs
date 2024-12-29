@@ -1,5 +1,4 @@
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Strategy as CustomStrategy } from "passport-custom";
 import passport from "passport";
 import { prisma } from "../utils/prisma.mjs";
 
@@ -9,102 +8,72 @@ export default function configurePassport() {
 			{
 				clientID: process.env.GOOGLE_CLIENT_ID,
 				clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-				callbackURL: "http://localhost:5000/auth/google/callback",
+				callbackURL: "/auth/google/callback",
+				scope: ["email", "profile"],
 			},
 			async (accessToken, refreshToken, profile, done) => {
 				try {
-					const user = await prisma.user.upsert({
+					const email = profile.emails?.[0]?.value || profile._json?.email;
+
+					if (!email) {
+						return done(new Error("No email found in Google profile"));
+					}
+
+					let user = await prisma.user.findUnique({
 						where: { googleId: profile.id },
-						update: {
-							email: profile.emails[0].value,
-							name: profile.displayName,
-							picture: profile.photos[0].value,
-						},
-						create: {
-							googleId: profile.id,
-							email: profile.emails[0].value,
-							name: profile.displayName,
-							picture: profile.photos[0].value,
-						},
 					});
-					done(null, user);
+
+					if (!user) {
+						user = await prisma.user.findUnique({
+							where: { email: email },
+						});
+					}
+
+					if (user) {
+						user = await prisma.user.update({
+							where: { id: user.id },
+							data: {
+								googleId: profile.id,
+								email: email,
+								name: profile.displayName,
+								picture: profile.photos?.[0]?.value,
+							},
+						});
+					} else {
+						user = await prisma.user.create({
+							data: {
+								googleId: profile.id,
+								email: email,
+								name: profile.displayName,
+								picture: profile.photos?.[0]?.value,
+							},
+						});
+					}
+
+					return done(null, user);
 				} catch (error) {
-					done(error, null);
+					console.error("Error in Google OAuth callback:", error);
+					return done(error);
 				}
 			}
-		),
-		
+		)
 	);
 
-	 passport.use(
-			"tiktok",
-			new CustomStrategy(async (req, done) => {
-				try {
-					const { code } = req.query;
-					if (!code) {
-						return done(null, false, { message: "No code provided" });
-					}
+	passport.serializeUser((user, done) => {
+		done(null, user.id);
+	});
 
-					// Exchange code for access token
-					const tokenResponse = await fetch(
-						"https://open-api.tiktok.com/oauth/access_token/",
-						{
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({
-								client_key: process.env.TIKTOK_CLIENT_KEY,
-								client_secret: process.env.TIKTOK_CLIENT_SECRET,
-								code,
-								grant_type: "authorization_code",
-							}),
-						}
-					);
-
-					const tokenData = await tokenResponse.json();
-
-					if (!tokenData.access_token) {
-						return done(null, false, { message: "Failed to get access token" });
-					}
-
-					// Get TikTok user info
-					const userResponse = await fetch(
-						"https://open-api.tiktok.com/oauth/userinfo/",
-						{
-							headers: {
-								Authorization: `Bearer ${tokenData.access_token}`,
-							},
-						}
-					);
-
-					const userData = await userResponse.json();
-
-					// Store TikTok connection in database
-					const connection = await prisma.connectedAccount.create({
-						data: {
-							userId: req.user.id,
-							platform: "tiktok",
-							accountId: userData.open_id,
-							accessToken: tokenData.access_token,
-							refreshToken: tokenData.refresh_token,
-						},
-					});
-
-					done(null, connection);
-				} catch (error) {
-					done(error);
-				}
-			})
-		);
-
-	passport.serializeUser((user, done) => done(null, user.id));
 	passport.deserializeUser(async (id, done) => {
 		try {
-			const user = await prisma.user.findUnique({ where: { id } });
+			const user = await prisma.user.findUnique({
+				where: { id },
+				include: {
+					connectedAccounts: true,
+				},
+			});
 			done(null, user);
 		} catch (error) {
-			done(error, null);
+			done(error);
 		}
 	});
 }

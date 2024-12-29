@@ -5,17 +5,21 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
 interface ConnectedAccountItemProps {
+	id: string;
 	name: string;
 	isActive: boolean;
 	connected: boolean;
 	onToggle: () => void;
+	onDisconnect: () => void;
 }
 
 const ConnectedAccountItem: React.FC<ConnectedAccountItemProps> = ({
+	id,
 	name,
 	isActive,
 	connected,
 	onToggle,
+	onDisconnect,
 }) => {
 	return (
 		<li className="flex items-center justify-between bg-card p-4 rounded-lg hover:shadow-md transition">
@@ -25,27 +29,24 @@ const ConnectedAccountItem: React.FC<ConnectedAccountItemProps> = ({
 				</div>
 				<div>
 					<span className="text-sm font-medium text-foreground">{name}</span>
-					{!connected && (
-						<span className="text-xs text-muted-foreground ml-2">
-							Not Connected
-						</span>
-					)}
 				</div>
 			</div>
-			{connected ? (
-				<Switch
-					checked={isActive}
-					onCheckedChange={onToggle}
-					className={isActive ? "bg-success" : "bg-muted"}
-				/>
-			) : (
+			<div className="flex items-center gap-4">
+				{connected && (
+					<Switch
+						checked={isActive}
+						onCheckedChange={onToggle}
+						className={isActive ? "bg-success" : "bg-muted"}
+					/>
+				)}
 				<Button
 					size="sm"
-					variant="outline"
+					variant="destructive"
+					onClick={onDisconnect}
 				>
-					Connect
+					Disconnect
 				</Button>
-			)}
+			</div>
 		</li>
 	);
 };

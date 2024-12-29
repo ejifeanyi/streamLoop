@@ -9,13 +9,15 @@ import {
 
 const router = express.Router();
 
+// User profile
 router.get("/profile", isAuthenticated, (req, res) => {
 	res.json(req.user);
 });
 
-router.post("/connect", isAuthenticated, connectAccount);
-router.delete("/disconnect/:accountId", isAuthenticated, disconnectAccount);
-router.patch("/toggle/:accountId", isAuthenticated, toggleAccountStatus);
+// Account management
 router.get("/accounts", isAuthenticated, getConnectedAccounts);
+router.post("/accounts/connect", isAuthenticated, connectAccount);
+router.put("/accounts/:id/toggle", isAuthenticated, toggleAccountStatus);
+router.delete("/accounts/:id/disconnect", isAuthenticated, disconnectAccount);
 
 export default router;

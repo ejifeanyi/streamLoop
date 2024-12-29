@@ -21,8 +21,22 @@ const AddNewAccountDropdown: React.FC<AddNewAccountDropdownProps> = ({
 	onAdd,
 }) => {
 	const availableServices = services.filter(
-		(service) => !connectedAccounts.includes(service)
+		(service) =>
+			!connectedAccounts.some(
+				(connectedAccount) =>
+					connectedAccount.toLowerCase() === service.toLowerCase()
+			)
 	);
+
+	const handleServiceClick = (service: string) => {
+		if (service.toLowerCase() === "youtube") {
+			// Redirect to the backend OAuth route for YouTube
+			window.location.href = "http://localhost:5000/auth/youtube";
+		} else {
+			// Handle other services normally
+			onAdd(service);
+		}
+	};
 
 	return (
 		<DropdownMenu>
@@ -42,7 +56,7 @@ const AddNewAccountDropdown: React.FC<AddNewAccountDropdownProps> = ({
 					availableServices.map((service) => (
 						<DropdownMenuItem
 							key={service}
-							onClick={() => onAdd(service)}
+							onClick={() => handleServiceClick(service)}
 							className="cursor-pointer hover:bg-muted"
 						>
 							{service}

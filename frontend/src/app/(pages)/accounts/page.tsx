@@ -1,55 +1,94 @@
-'use client'
+// pages/accounts.tsx
+"use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import ConnectedAccountItem from "@/components/ConnectedAccountItem";
 import AddNewAccountDropdown from "@/components/AddNewAccountDropdown";
-import { Loader2 } from "lucide-react";
 
-const services = ["Facebook", "YouTube", "TikTok", "Instagram", "Twitch"];
+const BACKEND_URL = "http://localhost:5000";
 
-const AccountsPage = () => {
+interface Account {
+	id: string;
+	platform: string;
+	isActive: boolean;
+	accountId: string;
+}
+
+const AccountsPage: React.FC = () => {
+	const { data: session, status } = useSession();
+	const router = useRouter();
+	const [accounts, setAccounts] = useState<Account[]>([]);
+	const [loading, setLoading] = useState(false);
+
+	const availableServices = [
+		"YouTube",
+		"Facebook",
+		"Twitter",
+		"Instagram",
+		"TikTok",
+	];
+
+	useEffect(() => {
+		if (status === "unauthenticated") {
+			router.push("/");
+			return;
+		}
+
+		const fetchAccounts = async () => {
+			setLoading(true);
+			try {
+				const response = await fetch(`${BACKEND_URL}/api/accounts`, {
+					headers: {
+						Authorization: `Bearer ${session?.user?.token}`, // Replace `token` with the appropriate session property if needed
+					},
+					credentials: "include",
+				});
+
+				if (!response.ok) {
+					throw new Error("Failed to fetch accounts");
+				}
+
+				const data: Account[] = await response.json();
+				setAccounts(data);
+			} catch (error) {
+				console.error("Error fetching accounts:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		if (status === "authenticated") {
+			fetchAccounts();
+		}
+	}, [status, session, router]);
+
+	if (status === "loading" || loading) {
+		return <div>Loading...</div>;
+	}
 
 	return (
-		<div className="min-h-screen bg-background p-8">
-			{/* Header */}
-			<header className="mb-8">
-				<h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-					Accounts
-				</h1>
-				<p className="text-muted-foreground mt-2 text-sm sm:text-base">
-					Manage your connected accounts. Toggle to enable or disable accounts
-					for streaming.
-				</p>
-			</header>
-
-			{/* Connected Accounts List */}
-			<div className="bg-card rounded-xl p-6">
-				<h2 className="text-lg font-semibold text-foreground mb-4">
-					Connected Accounts
-				</h2>
-				{/* <ul className="space-y-4">
-					{accountItems.map((account) => (
-						<ConnectedAccountItem
-							key={account.name}
-							name={account.name}
-							isActive={account.isActive}
-							connected={account.connected}
-							onToggle={() => toggleAccount(account.name)}
-						/>
-					))}
-				</ul> */}
-			</div>
-
-			{/* Add New Account */}
-			{/* <div className="mt-8 flex justify-center">
-				<AddNewAccountDropdown
-					services={services}
-					connectedAccounts={accountItems
-						.filter((acc) => acc.connected)
-						.map((acc) => acc.name)}
-					onAdd={addNewAccount}
-				/>
-			</div> */}
+		<div className="container mx-auto">
+			<h1 className="text-xl font-bold my-4">Manage Your Accounts</h1>
+			<AddNewAccountDropdown
+				services={availableServices}
+				connectedAccounts={accounts.map((acc) => acc.platform)}
+				onAdd={() => console.log("Add new account")} // Replace with actual function
+			/>
+			<ul className="space-y-4 mt-4">
+				{accounts.map((account) => (
+					<ConnectedAccountItem
+						key={account.id}
+						id={account.id}
+						name={account.platform}
+						isActive={account.isActive}
+						connected
+						onToggle={() => console.log("Toggle account")} // Replace with actual function
+						onDisconnect={() => console.log("Disconnect account")} // Replace with actual function
+					/>
+				))}
+			</ul>
 		</div>
 	);
 };

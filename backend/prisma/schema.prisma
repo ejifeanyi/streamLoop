@@ -2,9 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -13,21 +12,20 @@ generator client {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  name        String?
-  picture     String?
-  googleId    String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  // Add this line to create the reverse relation
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  picture   String?
+  googleId  String?  @unique
+  
   connectedAccounts ConnectedAccount[]
+  
+  @@map("users")
 }
 
 model ConnectedAccount {
-  id           String   @id @default(uuid())
+  id           String   @id @default(cuid())
   userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   platform     String
   accountId    String
   accessToken  String
@@ -35,6 +33,9 @@ model ConnectedAccount {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id])
 
   @@unique([userId, platform, accountId])
+  @@map("connected_accounts")
 }

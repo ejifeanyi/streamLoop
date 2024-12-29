@@ -10,6 +10,8 @@ const Header = () => {
 	console.log("session: ", session);
 	console.log("image: ", session?.user?.picture);
 
+	if (status === "loading") return null;
+
 	return (
 		<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 md:px-8 lg:px-12 h-16 bg-card text-card-foreground border-b border-border shadow-sm">
 			<div className="absolute left-1/2 transform -translate-x-1/2">
