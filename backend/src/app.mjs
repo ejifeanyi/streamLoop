@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 import dotenv from "dotenv";
 import configurePassport from "./config/passport.mjs";
+import { configureYouTubeStrategy } from "./config/youtube.mjs";
+import platformRoutes from "./routes/platformRoutes.mjs";
 import authRoutes from "./routes/authRoutes.mjs";
 import userRoutes from "./routes/userRoutes.mjs";
 
@@ -23,7 +25,7 @@ const app = express();
 
 app.use(
 	cors({
-		origin: "http://localhost:3000",
+		origin: process.env.CLIENT_URL,
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 		credentials: true,
 		exposedHeaders: ["set-cookie"],
@@ -76,7 +78,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Configure Passport
-configurePassport(); // Remove passing passport as argument since it's already imported
+configurePassport();
+configureYouTubeStrategy();
 
 // Enhanced debug middleware
 if (process.env.NODE_ENV !== "production") {
@@ -116,6 +119,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/auth", authRoutes);
+app.use("/auth", platformRoutes);
 app.use("/api", checkAuth, userRoutes);
 
 // Error handling

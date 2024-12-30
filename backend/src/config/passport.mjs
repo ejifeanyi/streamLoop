@@ -60,6 +60,7 @@ export default function configurePassport() {
 	);
 
 	passport.serializeUser((user, done) => {
+		// Serialize just the user ID
 		done(null, user.id);
 	});
 
@@ -71,6 +72,9 @@ export default function configurePassport() {
 					connectedAccounts: true,
 				},
 			});
+
+			// If there's YouTube data in the session, it will be handled by the
+			// YouTube callback route when storing in the database
 			done(null, user);
 		} catch (error) {
 			done(error);

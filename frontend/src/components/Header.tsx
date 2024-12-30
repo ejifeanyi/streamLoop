@@ -32,7 +32,7 @@ const Header = () => {
 					setSession(null);
 				}
 			} catch (error) {
-				console.error("Auth check failed:", error);
+				console.log("Auth check failed:", error);
 				setSession(null);
 			} finally {
 				setLoading(false);

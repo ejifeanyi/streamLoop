@@ -1,96 +1,111 @@
-// pages/accounts.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ConnectedAccountItem from "@/components/ConnectedAccountItem";
-import AddNewAccountDropdown from "@/components/AddNewAccountDropdown";
+import { Button } from "@/components/ui/button";
+import { platformService } from "@/services/platformService";
+import { toast } from "sonner";
+import { ConnectedAccount } from "@/types/types";
 
-const BACKEND_URL = "http://localhost:5000";
-
-interface Account {
-	id: string;
-	platform: string;
-	isActive: boolean;
-	accountId: string;
-}
-
-const AccountsPage: React.FC = () => {
-	const { data: session, status } = useSession();
-	const router = useRouter();
-	const [accounts, setAccounts] = useState<Account[]>([]);
-	const [loading, setLoading] = useState(false);
-
-	const availableServices = [
-		"YouTube",
-		"Facebook",
-		"Twitter",
-		"Instagram",
-		"TikTok",
-	];
+export default function AccountsPage() {
+	const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
+	const [loading, setLoading] = useState(true);
+	const searchParams = useSearchParams();
 
 	useEffect(() => {
-		if (status === "unauthenticated") {
-			router.push("/");
-			return;
+		loadAccounts();
+		checkAuthStatus();
+	}, []);
+
+	const checkAuthStatus = () => {
+		const youtube = searchParams.get("youtube");
+		const error = searchParams.get("error");
+
+		if (youtube === "connected") {
+			toast.success("YouTube account connected successfully!");
+		} else if (error) {
+			toast.error(`Connection failed: ${error.replace(/_/g, " ")}`);
 		}
+	};
 
-		const fetchAccounts = async () => {
-			setLoading(true);
-			try {
-				const response = await fetch(`${BACKEND_URL}/api/accounts`, {
-					headers: {
-						Authorization: `Bearer ${session?.user?.token}`, // Replace `token` with the appropriate session property if needed
-					},
-					credentials: "include",
-				});
-
-				if (!response.ok) {
-					throw new Error("Failed to fetch accounts");
-				}
-
-				const data: Account[] = await response.json();
-				setAccounts(data);
-			} catch (error) {
-				console.error("Error fetching accounts:", error);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		if (status === "authenticated") {
-			fetchAccounts();
+	const loadAccounts = async () => {
+		try {
+			const accounts = await platformService.getConnectedAccounts();
+			console.log("AccountsPage received accounts:", accounts);
+			console.log("Account count:", accounts.length);
+			console.log("First account details:", accounts[0]);
+			setAccounts(accounts);
+		} catch (error) {
+			console.error("Error in loadAccounts:", error);
+			toast.error("Failed to load connected accounts");
+		} finally {
+			setLoading(false);
 		}
-	}, [status, session, router]);
+	};
 
-	if (status === "loading" || loading) {
-		return <div>Loading...</div>;
-	}
+	const handleConnectYoutube = () => {
+		platformService.initiateConnection("youtube");
+	};
+
+	const handleToggle = async (accountId: string, currentState: boolean) => {
+		try {
+			await platformService.togglePlatform(accountId, !currentState);
+			setAccounts(
+				accounts.map((account) =>
+					account.id === accountId
+						? { ...account, isActive: !currentState }
+						: account
+				)
+			);
+			toast.success("Account status updated");
+		} catch (error) {
+			toast.error("Failed to update account status");
+		}
+	};
+
+	const handleDisconnect = async (platform: string) => {
+		try {
+			await platformService.disconnectPlatform(platform);
+			setAccounts(accounts.filter((account) => account.platform !== platform));
+			toast.success("Account disconnected successfully");
+		} catch (error) {
+			toast.error("Failed to disconnect account");
+		}
+	};
 
 	return (
-		<div className="container mx-auto">
-			<h1 className="text-xl font-bold my-4">Manage Your Accounts</h1>
-			<AddNewAccountDropdown
-				services={availableServices}
-				connectedAccounts={accounts.map((acc) => acc.platform)}
-				onAdd={() => console.log("Add new account")} // Replace with actual function
-			/>
-			<ul className="space-y-4 mt-4">
-				{accounts.map((account) => (
-					<ConnectedAccountItem
-						key={account.id}
-						id={account.id}
-						name={account.platform}
-						isActive={account.isActive}
-						connected
-						onToggle={() => console.log("Toggle account")} // Replace with actual function
-						onDisconnect={() => console.log("Disconnect account")} // Replace with actual function
-					/>
-				))}
-			</ul>
+		<div className="container mx-auto py-8">
+			<div className="flex justify-between items-center mb-6">
+				<h1 className="text-2xl font-bold">Connected Accounts</h1>
+				{!accounts.some(
+					(account) => account.platform.toLowerCase() === "youtube"
+				) && <Button onClick={handleConnectYoutube}>Connect YouTube</Button>}
+			</div>
+
+			{loading ? (
+				<div className="flex justify-center">
+					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+				</div>
+			) : (
+				<div className="space-y-4">
+					{accounts.map((account) => (
+						<ConnectedAccountItem
+							key={account.id} // Also added a key prop which is required for lists
+							account={account} // Changed from accountData to account
+							onToggle={(accountId, isActive) =>
+								handleToggle(accountId, isActive)
+							}
+							onDisconnect={(platform) => handleDisconnect(platform)}
+						/>
+					))}
+					{accounts.length === 0 && (
+						<p className="text-center text-gray-500">
+							No accounts connected. Connect your first account to get started.
+						</p>
+					)}
+				</div>
+			)}
 		</div>
 	);
-};
-
-export default AccountsPage;
+}
