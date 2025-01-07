@@ -37,7 +37,7 @@ export default function AccountsPage() {
 			console.log("First account details:", accounts[0]);
 			setAccounts(accounts);
 		} catch (error) {
-			console.error("Error in loadAccounts:", error);
+			console.log("Error in loadAccounts:", error);
 			toast.error("Failed to load connected accounts");
 		} finally {
 			setLoading(false);
