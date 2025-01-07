@@ -5,7 +5,9 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start:dev": "nodemon ./src/index.mjs",
-		"start": "node ./src/index.mjs"
+		"start": "node ./src/index.mjs",
+		"prisma:generate": "prisma generate",
+		"prisma:push": "prisma db push"
 	},
 	"keywords": [],
 	"author": "",
@@ -21,7 +23,8 @@
 		"googleapis": "^144.0.0",
 		"passport": "^0.7.0",
 		"passport-custom": "^1.1.1",
-		"passport-google-oauth20": "^2.0.0"
+		"passport-google-oauth20": "^2.0.0",
+		"passport-oauth2": "^1.8.0"
 	},
 	"devDependencies": {
 		"nodemon": "^3.1.9",

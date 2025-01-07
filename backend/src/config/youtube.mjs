@@ -1,4 +1,4 @@
-// config/youtube.mjs
+// src/config/youtube.js
 import { Strategy as OAuth2Strategy } from "passport-oauth2";
 import passport from "passport";
 
@@ -18,15 +18,17 @@ export function configureYouTubeStrategy() {
 				clientSecret: process.env.YOUTUBE_CLIENT_SECRET,
 				callbackURL: `${process.env.BACKEND_URL}/auth/youtube/callback`,
 				scope: YOUTUBE_SCOPES,
+				accessType: "offline", // Add this
+				prompt: "consent", // Add this
 				state: true,
 				passReqToCallback: true,
 			},
 			async (req, accessToken, refreshToken, profile, done) => {
-				// Add req parameter
 				try {
-					// Fetch YouTube channel info
+					console.log("YouTube OAuth tokens:", { accessToken, refreshToken }); // Debug log
+
 					const response = await fetch(
-						"https://youtube.googleapis.com/youtube/v3/channels?part=snippet,contentDetails,statistics&mine=true",
+						"https://youtube.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
 						{
 							headers: {
 								Authorization: `Bearer ${accessToken}`,
@@ -34,34 +36,26 @@ export function configureYouTubeStrategy() {
 						}
 					);
 
-					if (!response.ok) {
+					if (!response.ok)
 						throw new Error("Failed to fetch YouTube channel info");
-					}
 
 					const data = await response.json();
-					if (!data.items || data.items.length === 0) {
-						throw new Error("No YouTube channel found");
-					}
-
 					const channel = data.items[0];
 
-					// Merge YouTube data with existing user data
 					const youtubeData = {
-						...req.user, // Keep existing user data
-						youtube: {
-							// Add YouTube specific data
-							accessToken,
-							refreshToken,
-							channelId: channel.id,
-							channelTitle: channel.snippet.title,
-							channelStats: {
-								subscribers: channel.statistics.subscriberCount,
-								videos: channel.statistics.videoCount,
-							},
+						accessToken,
+						refreshToken, // This should now be populated
+						channelId: channel.id,
+						channelTitle: channel.snippet.title,
+						channelStats: {
+							subscribers: channel.statistics.subscriberCount,
+							videos: channel.statistics.videoCount,
 						},
 					};
 
-					return done(null, youtubeData);
+					console.log("youtube data: ", { youtube: youtubeData });
+
+					return done(null, { ...req.user, youtube: youtubeData });
 				} catch (error) {
 					console.error("YouTube strategy error:", error);
 					return done(error);

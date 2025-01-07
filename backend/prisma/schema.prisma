@@ -28,11 +28,12 @@ model ConnectedAccount {
   accessToken  String
   refreshToken String?
   channelData  Json?
-  isActive     Boolean @default(true)
+  isActive     Boolean  @default(true)
+  tokenExpiry  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, platform, accountId])
+  @@map("connected_accounts")
 }
-
