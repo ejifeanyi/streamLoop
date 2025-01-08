@@ -1,50 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { ModeToggle } from "./ModeToggle";
 import AuthButton from "./AuthButton";
-
-interface User {
-	id: string;
-	email: string;
-	name: string;
-	picture?: string;
-}
-
-interface Session {
-	user: User | null;
-}
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-	const [session, setSession] = useState<Session | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	useEffect(() => {
-		const checkAuth = async () => {
-			try {
-				const response = await fetch("http://localhost:5000/auth/check", {
-					credentials: "include",
-				});
-				const data = await response.json();
-				if (data.authenticated) {
-					setSession({ user: data.user });
-				} else {
-					setSession(null);
-				}
-			} catch (error) {
-				console.log("Auth check failed:", error);
-				setSession(null);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		checkAuth();
-	}, []);
+	const { user, loading } = useAuth();
 
 	if (loading) {
 		return <div>Loading...</div>;
 	}
+
+	// Create a session object to match your AuthButton's expected props
+	const session = user ? { user } : null;
 
 	return (
 		<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 md:px-8 lg:px-12 h-16 bg-card text-card-foreground border-b border-border shadow-sm">

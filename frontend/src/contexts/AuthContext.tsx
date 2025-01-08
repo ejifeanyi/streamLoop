@@ -25,12 +25,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	const checkAuth = async () => {
 		try {
-			const response = await fetch("http://localhost:3000/auth/me", {
+			const response = await fetch("http://localhost:5000/auth/check", {
 				credentials: "include",
 			});
 			if (response.ok) {
 				const data = await response.json();
-				setUser(data.user);
+				if (data.authenticated) {
+					setUser(data.user);
+				} else {
+					setUser(null);
+				}
 			} else {
 				setUser(null);
 			}
@@ -43,16 +47,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	const signIn = () => {
-		window.location.href = "http://localhost:3000/auth/google";
+		window.location.href = "http://localhost:5000/auth/google";
 	};
 
 	const signOut = async () => {
 		try {
-			await fetch("http://localhost:3000/auth/logout", {
+			const response = await fetch("http://localhost:5000/auth/logout", {
 				method: "POST",
 				credentials: "include",
 			});
-			setUser(null);
+			if (response.ok) {
+				setUser(null);
+				await checkAuth(); // Re-check auth state after logout
+			}
 		} catch (error) {
 			console.log("Logout failed:", error);
 		}
@@ -69,10 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	);
 }
 
-export function useAuth() {
+// Export the useAuth hook
+export const useAuth = () => {
 	const context = useContext(AuthContext);
 	if (!context) {
 		throw new Error("useAuth must be used within an AuthProvider");
 	}
 	return context;
-}
+};

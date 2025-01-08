@@ -1,8 +1,8 @@
-// src/components/SignInButton.tsx
 "use client";
 
 import React from "react";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface User {
 	id: string;
@@ -26,35 +26,19 @@ const AuthButton = ({
 	variant = "default",
 	className = "",
 }: SignInButtonProps) => {
-	const handleSignIn = () => {
-		window.location.href = "http://localhost:5000/auth/google";
-	};
-
-	const handleSignOut = async () => {
-		try {
-			const response = await fetch("http://localhost:5000/auth/logout", {
-				method: "POST",
-				credentials: "include",
-			});
-			if (response.ok) {
-				window.location.reload();
-			}
-		} catch (error) {
-			console.error("Logout failed:", error);
-		}
-	};
+	const { signIn, signOut } = useAuth();
 
 	if (variant === "minimal") {
 		return session?.user ? (
 			<button
-				onClick={handleSignOut}
+				onClick={signOut}
 				className={`text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 ${className}`}
 			>
 				Sign Out
 			</button>
 		) : (
 			<button
-				onClick={handleSignIn}
+				onClick={signIn}
 				className={`text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 ${className}`}
 			>
 				Sign In
@@ -74,7 +58,7 @@ const AuthButton = ({
 				/>
 			</div>
 			<button
-				onClick={handleSignOut}
+				onClick={signOut}
 				className="px-4 py-2 bg-secondary text-white rounded-md hover:bg-primary transition"
 			>
 				Sign Out
@@ -82,7 +66,7 @@ const AuthButton = ({
 		</div>
 	) : (
 		<button
-			onClick={handleSignIn}
+			onClick={signIn}
 			className="px-4 py-2 bg-primary text-white rounded-md hover:bg-secondary transition"
 		>
 			Sign In
