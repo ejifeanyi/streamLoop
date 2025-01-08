@@ -28,7 +28,6 @@ import {
 	ChartTooltipContent,
 	ChartConfig,
 } from "@/components/ui/chart";
-import { useSession } from "next-auth/react";
 
 // Total Views Chart Data and Config
 const totalViewsData = [
@@ -76,9 +75,6 @@ const engagementRateConfig: ChartConfig = {
 const OverviewCard = () => {
 	return (
 		<>
-			<h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black dark:text-white p-4">
-				Welcome Dave
-			</h1>
 			<div className="grid gap-6 md:grid-cols-3">
 				{/* Total Views */}
 				<Card>
