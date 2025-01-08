@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import { Home, User, RadioTower, Settings, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const Sidebar = () => {
-	const [selected, setSelected] = useState("dashboard");
 	const [isOpen, setIsOpen] = useState(false);
+	const pathname = usePathname(); // Get the current pathname
 
 	const menuItems = [
 		{ id: "dashboard", name: "Dashboard", icon: <Home />, url: "/dashboard" },
@@ -38,9 +39,8 @@ const Sidebar = () => {
 							href={item.url}
 						>
 							<button
-								onClick={() => setSelected(item.id)}
 								className={`flex items-center w-full mb-2 rounded-xl p-4 text-left text-sm font-medium transition-all duration-300 hover:bg-muted ${
-									selected === item.id
+									pathname === item.url
 										? "bg-primary text-primary-foreground"
 										: "text-muted-foreground"
 								}`}
