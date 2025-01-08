@@ -18,15 +18,13 @@ export function configureYouTubeStrategy() {
 				clientSecret: process.env.YOUTUBE_CLIENT_SECRET,
 				callbackURL: `${process.env.BACKEND_URL}/auth/youtube/callback`,
 				scope: YOUTUBE_SCOPES,
-				accessType: "offline", // Add this
-				prompt: "consent", // Add this
+				accessType: "offline",
+				prompt: "consent",
 				state: true,
 				passReqToCallback: true,
 			},
-			async (req, accessToken, refreshToken, profile, done) => {
+			async (req, accessToken, refreshToken, params, profile, done) => {
 				try {
-					console.log("YouTube OAuth tokens:", { accessToken, refreshToken }); // Debug log
-
 					const response = await fetch(
 						"https://youtube.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
 						{
@@ -44,7 +42,7 @@ export function configureYouTubeStrategy() {
 
 					const youtubeData = {
 						accessToken,
-						refreshToken, // This should now be populated
+						refreshToken,
 						channelId: channel.id,
 						channelTitle: channel.snippet.title,
 						channelStats: {
@@ -53,11 +51,10 @@ export function configureYouTubeStrategy() {
 						},
 					};
 
-					console.log("youtube data: ", { youtube: youtubeData });
+					console.log("youtube: ", { youtube: youtubeData });
 
 					return done(null, { ...req.user, youtube: youtubeData });
 				} catch (error) {
-					console.error("YouTube strategy error:", error);
 					return done(error);
 				}
 			}

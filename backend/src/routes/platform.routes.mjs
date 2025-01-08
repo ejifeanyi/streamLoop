@@ -39,6 +39,33 @@ router.get(
 	}
 );
 
+router.get("/connect/twitch", isAuthenticated, (req, res, next) => {
+	passport.authenticate("twitch", {
+		scope: TWITCH_SCOPES,
+		state: true,
+	})(req, res, next);
+});
+
+router.get(
+	"/twitch/callback",
+	isAuthenticated,
+	passport.authenticate("twitch", {
+		failureRedirect: `${process.env.CLIENT_URL}/settings?error=twitch_auth_failed`,
+		failureMessage: true,
+	}),
+	async (req, res) => {
+		try {
+			const twitchData = req.user.twitch;
+			await PlatformService.connectTwitchAccount(req.user.id, twitchData);
+			res.redirect(`${process.env.CLIENT_URL}/settings?twitch=connected`);
+		} catch (error) {
+			res.redirect(
+				`${process.env.CLIENT_URL}/settings?error=twitch_connection_failed`
+			);
+		}
+	}
+);
+
 router.get("/accounts", isAuthenticated, async (req, res) => {
 	try {
 		const accounts = await PlatformService.getConnectedAccounts(req.user.id);

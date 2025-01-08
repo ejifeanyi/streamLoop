@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 import { configurePassport } from "./config/passport.mjs";
 import { configureYouTubeStrategy } from "./config/youtube.mjs";
+import { configureTwitchStrategy } from "./config/twitch.mjs";
 import authRoutes from "./routes/auth.routes.mjs";
 import platformRoutes from "./routes/platform.routes.mjs";
 
@@ -43,6 +44,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 configurePassport();
 configureYouTubeStrategy();
+configureTwitchStrategy();
 
 // Routes
 app.use("/auth", authRoutes);

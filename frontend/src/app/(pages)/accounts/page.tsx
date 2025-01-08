@@ -48,6 +48,10 @@ export default function AccountsPage() {
 		platformService.initiateConnection("youtube");
 	};
 
+	const handleConnectTwitch = () => {
+		platformService.initiateConnection("twitch");
+	};
+
 	const handleToggle = async (accountId: string, currentState: boolean) => {
 		try {
 			await platformService.togglePlatform(accountId, !currentState);
@@ -81,6 +85,16 @@ export default function AccountsPage() {
 				{!accounts.some(
 					(account) => account.platform.toLowerCase() === "youtube"
 				) && <Button onClick={handleConnectYoutube}>Connect YouTube</Button>}
+				{!accounts.some(
+					(account) => account.platform.toLowerCase() === "twitch"
+				) && (
+					<Button
+						onClick={handleConnectTwitch}
+						className="bg-purple-600 hover:bg-purple-700"
+					>
+						Connect Twitch
+					</Button>
+				)}
 			</div>
 
 			{loading ? (
