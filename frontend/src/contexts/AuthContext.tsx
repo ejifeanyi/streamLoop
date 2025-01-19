@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			});
 			if (response.ok) {
 				setUser(null);
-				await checkAuth(); // Re-check auth state after logout
+				await checkAuth();
 			}
 		} catch (error) {
 			console.log("Logout failed:", error);
@@ -76,7 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	);
 }
 
-// Export the useAuth hook
 export const useAuth = () => {
 	const context = useContext(AuthContext);
 	if (!context) {

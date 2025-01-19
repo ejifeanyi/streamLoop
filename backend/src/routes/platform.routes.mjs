@@ -8,59 +8,58 @@ import { YOUTUBE_SCOPES } from "../config/youtube.mjs";
 const router = express.Router();
 
 router.get("/connect/youtube", isAuthenticated, (req, res, next) => {
-	passport.authenticate("youtube", {
+	console.log(
+		"Authorization initiation - Callback URL:",
+		`${process.env.BACKEND_URL}/platform/youtube/callback`
+	);
+
+	const authenticateOptions = {
+		accessType: "offline",
+		prompt: "consent",
 		scope: YOUTUBE_SCOPES,
-		accessType: "offline", // Add this
-		prompt: "consent", // Add this
 		state: true,
-	})(req, res, next);
+		includeGrantedScopes: true,
+	};
+
+	passport.authenticate("youtube", authenticateOptions)(req, res, next);
 });
 
 router.get(
 	"/youtube/callback",
 	isAuthenticated,
+	(req, res, next) => {
+		if (req.query.error) {
+			console.error("YouTube OAuth error:", req.query.error);
+			return res.redirect(
+				`${process.env.CLIENT_URL}/dashboard?error=${req.query.error}`
+			);
+		}
+
+		console.log("Received authorization code:", req.query.code);
+		next();
+	},
 	passport.authenticate("youtube", {
-		failureRedirect: `${process.env.CLIENT_URL}/settings?error=youtube_auth_failed`,
+		failureRedirect: `${process.env.CLIENT_URL}/dashboard?error=authentication_failed`,
 		failureMessage: true,
 	}),
 	async (req, res) => {
 		try {
-			const youtubeData = req.user.youtube;
-			console.log("YouTube data before saving:", youtubeData); // Debug log
+			const youtubeAccount = req.user.connectedAccounts.find(
+				(account) => account.platform === "YOUTUBE"
+			);
 
-			await PlatformService.connectYouTubeAccount(req.user.id, youtubeData);
-			res.redirect(`${process.env.CLIENT_URL}/settings?youtube=connected`);
+			if (!youtubeAccount?.refreshToken) {
+				console.error("No refresh token in connected account");
+				throw new Error("YouTube account connection failed - no refresh token");
+			}
+
+			res.redirect(
+				`${process.env.CLIENT_URL}/dashboard?platform=youtube&status=connected`
+			);
 		} catch (error) {
 			console.error("YouTube connection error:", error);
 			res.redirect(
-				`${process.env.CLIENT_URL}/settings?error=youtube_connection_failed`
-			);
-		}
-	}
-);
-
-router.get("/connect/twitch", isAuthenticated, (req, res, next) => {
-	passport.authenticate("twitch", {
-		scope: TWITCH_SCOPES,
-		state: true,
-	})(req, res, next);
-});
-
-router.get(
-	"/twitch/callback",
-	isAuthenticated,
-	passport.authenticate("twitch", {
-		failureRedirect: `${process.env.CLIENT_URL}/settings?error=twitch_auth_failed`,
-		failureMessage: true,
-	}),
-	async (req, res) => {
-		try {
-			const twitchData = req.user.twitch;
-			await PlatformService.connectTwitchAccount(req.user.id, twitchData);
-			res.redirect(`${process.env.CLIENT_URL}/settings?twitch=connected`);
-		} catch (error) {
-			res.redirect(
-				`${process.env.CLIENT_URL}/settings?error=twitch_connection_failed`
+				`${process.env.CLIENT_URL}/dashboard?error=youtube_connection_failed`
 			);
 		}
 	}

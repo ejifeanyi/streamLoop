@@ -16,24 +16,57 @@ model User {
   googleId  String?  @unique
   
   connectedAccounts ConnectedAccount[]
+  streamSessions    StreamSession[]
   
   @@map("users")
 }
 
 model ConnectedAccount {
-  id           String   @id @default(cuid())
-  userId       String
-  platform     String
-  accountId    String
-  accessToken  String
-  refreshToken String?
-  channelData  Json?
-  isActive     Boolean  @default(true)
-  tokenExpiry  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id])
+  id              String          @id @default(cuid())
+  userId          String
+  platform        String
+  accountId       String
+  accessToken     String
+  refreshToken    String?
+  channelData     Json?
+  isActive        Boolean         @default(true)
+  tokenExpiry     DateTime?
+  lastRefresh     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  status          String?         @default("ready")
+  streamSettings  StreamSettings?
+  user            User            @relation(fields: [userId], references: [id])
+  streamSessions  StreamSession[]
 
   @@unique([userId, platform, accountId])
   @@map("connected_accounts")
+}
+
+model StreamSettings {
+  id              String           @id @default(cuid())
+  accountId       String           @unique
+  quality         String           @default("1080p")
+  enableAutoStart Boolean          @default(false)
+  enableChatRelay Boolean          @default(true)
+  enableLowLatency Boolean         @default(true)
+  customRtmpUrl   String?
+  account         ConnectedAccount @relation(fields: [accountId], references: [id])
+
+  @@map("stream_settings")
+}
+
+model StreamSession {
+  id          String        @id @default(cuid())
+  userId      String
+  startedAt   DateTime      @default(now())
+  endedAt     DateTime?
+  status      String        @default("created")
+  title       String?
+  metrics     Json          @default("{}")
+  platforms   Json          @default("{}")
+  user        User          @relation(fields: [userId], references: [id])
+  accounts    ConnectedAccount[]
+
+  @@map("stream_sessions")
 }

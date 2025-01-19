@@ -7,6 +7,7 @@ import passport from "passport";
 import { configurePassport } from "./config/passport.mjs";
 import { configureYouTubeStrategy } from "./config/youtube.mjs";
 import { configureTwitchStrategy } from "./config/twitch.mjs";
+import { configureFacebookStrategy } from "./config/facebook.mjs";
 import authRoutes from "./routes/auth.routes.mjs";
 import platformRoutes from "./routes/platform.routes.mjs";
 
@@ -45,10 +46,11 @@ app.use(passport.session());
 configurePassport();
 configureYouTubeStrategy();
 configureTwitchStrategy();
+configureFacebookStrategy();
 
 // Routes
 app.use("/auth", authRoutes);
-app.use("/auth", platformRoutes);
+app.use("/platform", platformRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
