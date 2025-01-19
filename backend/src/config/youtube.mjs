@@ -10,14 +10,12 @@ export const YOUTUBE_SCOPES = [
 
 const youtube = google.youtube("v3");
 
-// Export these as named exports
 export const youtubeOAuth2Client = new google.auth.OAuth2(
 	process.env.YOUTUBE_CLIENT_ID,
 	process.env.YOUTUBE_CLIENT_SECRET,
 	`${process.env.BACKEND_URL}/platform/youtube/callback`
 );
 
-// Make sure this is exported
 export const refreshYouTubeToken = async (refreshToken) => {
 	try {
 		youtubeOAuth2Client.setCredentials({
@@ -40,7 +38,6 @@ export const refreshYouTubeToken = async (refreshToken) => {
 };
 
 export const configureYouTubeStrategy = () => {
-	// Define custom OAuth2Strategy that forces refresh token
 	class YouTubeOAuth2Strategy extends OAuth2Strategy {
 		authorizationParams(options) {
 			return Object.assign(super.authorizationParams(options), {
@@ -109,7 +106,6 @@ export const configureYouTubeStrategy = () => {
 
 			const channel = response.data.items[0];
 
-			// Update the user with YouTube information
 			const updatedUser = await prisma.user.update({
 				where: { id: req.user.id },
 				data: {

@@ -8,11 +8,6 @@ import { YOUTUBE_SCOPES } from "../config/youtube.mjs";
 const router = express.Router();
 
 router.get("/connect/youtube", isAuthenticated, (req, res, next) => {
-	console.log(
-		"Authorization initiation - Callback URL:",
-		`${process.env.BACKEND_URL}/platform/youtube/callback`
-	);
-
 	const authenticateOptions = {
 		accessType: "offline",
 		prompt: "consent",
