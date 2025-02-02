@@ -10,6 +10,7 @@ import { configureTwitchStrategy } from "./config/twitch.mjs";
 import { configureFacebookStrategy } from "./config/facebook.mjs";
 import authRoutes from "./routes/auth.routes.mjs";
 import platformRoutes from "./routes/platform.routes.mjs";
+import streamRoutes from "./routes/stream.routes.mjs";
 
 const app = express();
 
@@ -51,6 +52,7 @@ configureFacebookStrategy();
 // Routes
 app.use("/auth", authRoutes);
 app.use("/platform", platformRoutes);
+app.use("/stream", streamRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

@@ -73,6 +73,21 @@ model StreamSession {
   frameRate   Int       @default(30)
   user        User      @relation(fields: [userId], references: [id])
   accounts    ConnectedAccount[]
+  endedAt     DateTime?
+  chunks      StreamChunk[]
 
   @@map("stream_sessions")
+}
+
+model StreamChunk {
+  id          String   @id @default(cuid())
+  sessionId   String
+  chunkNumber Int
+  quality     String
+  duration    Float
+  status      String
+  createdAt   DateTime @default(now())
+  session     StreamSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([sessionId, chunkNumber, quality])
 }
