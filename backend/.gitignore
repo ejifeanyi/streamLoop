@@ -1,3 +1,5 @@
 node_modules
 # Keep environment variables out of version control
 .env
+backend/media/live/*.mp4
+backend/media/live/*.m3u8

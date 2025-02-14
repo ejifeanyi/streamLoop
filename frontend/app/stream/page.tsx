@@ -6,6 +6,7 @@ import { useAuth } from "../AuthContext";
 import { useRouter } from "next/navigation";
 import VideoPreview from "@/components/VideoPreview";
 import CommentSection from "@/components/CommentSection";
+import { Navbar } from "@/components/Navbar";
 
 const Page: React.FC = () => {
 	const { user, loading } = useAuth();
@@ -25,6 +26,7 @@ const Page: React.FC = () => {
 
 	return (
 		<div className="flex flex-col h-screen max-h-screen overflow-hidden w-full max-w-[1300px] mx-auto">
+			<Navbar />
 			<h1 className="text-foreground text-xl font-medium mb-4">
 				Hi {userFirstName}, let&apos;s start streaming!
 			</h1>
