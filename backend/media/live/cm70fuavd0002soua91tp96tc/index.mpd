@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MPD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="urn:mpeg:dash:schema:mpd:2011"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xsi:schemaLocation="urn:mpeg:DASH:schema:MPD:2011 http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-MPD.xsd"
+	profiles="urn:mpeg:dash:profile:isoff-live:2011"
+	type="dynamic"
+	minimumUpdatePeriod="PT8S"
+	suggestedPresentationDelay="PT8S"
+	availabilityStartTime="2025-02-11T12:08:42.940Z"
+	publishTime="2025-02-11T12:19:17.416Z"
+	timeShiftBufferDepth="PT24.0S"
+	maxSegmentDuration="PT5.0S"
+	minBufferTime="PT16.0S">
+	<ProgramInformation>
+	</ProgramInformation>
+	<ServiceDescription id="0">
+	</ServiceDescription>
+	<Period id="0" start="PT0.0S">
+		<AdaptationSet id="0" contentType="audio" startWithSAP="1" segmentAlignment="true" bitstreamSwitching="true">
+			<Representation id="0" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="128000" audioSamplingRate="44100">
+				<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="1" />
+				<SegmentTemplate timescale="44100" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="126">
+					<SegmentTimeline>
+						<S t="27648848" d="221161" />
+						<S d="221206" />
+						<S d="221205" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+		<AdaptationSet id="1" contentType="video" startWithSAP="1" segmentAlignment="true" bitstreamSwitching="true" frameRate="15/1" maxWidth="1280" maxHeight="720" par="16:9">
+			<Representation id="1" mimeType="video/mp4" codecs="avc1.64001f" bandwidth="2500000" width="1280" height="720" sar="1:1">
+				<SegmentTemplate timescale="15360" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="84">
+					<SegmentTimeline>
+						<S t="9451520" d="106496" />
+						<S d="122880" r="1" />
+					</SegmentTimeline>
+				</SegmentTemplate>
+			</Representation>
+		</AdaptationSet>
+	</Period>
+</MPD>

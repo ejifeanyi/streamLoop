@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  picture   String?
+  googleId  String?  @unique
+  
+  connectedAccounts ConnectedAccount[]
+  streamSessions    StreamSession[]
+  
+  @@map("users")
+}
+
+model ConnectedAccount {
+  id              String          @id @default(cuid())
+  userId          String
+  platform        String
+  accountId       String
+  accessToken     String
+  refreshToken    String?
+  channelData     Json?
+  isActive        Boolean         @default(true)
+  tokenExpiry     DateTime?
+  lastRefresh     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  status          String?         @default("ready")
+  streamSettings  StreamSettings?
+  user            User            @relation(fields: [userId], references: [id])
+  streamSessions  StreamSession[]
+
+  @@unique([userId, platform])
+  @@map("connected_accounts")
+}
+
+model StreamSettings {
+  id              String           @id @default(cuid())
+  accountId       String           @unique
+  quality         String           @default("1080p")
+  enableAutoStart Boolean          @default(false)
+  enableLowLatency Boolean         @default(true)
+  account         ConnectedAccount @relation(fields: [accountId], references: [id])
+
+  @@map("stream_settings")
+}
+
+model StreamSession {
+  id          String    @id @default(cuid())
+  userId      String
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  status      String    @default("created")
+  title       String?
+  youtubeData Json?     @default("{}")
+  streamKey   String?
+  rtmpUrl     String?
+  quality     String    @default("1080p")
+  bitrate     Int       @default(2500)
+  resolution  String    @default("1920x1080")
+  frameRate   Int       @default(30)
+  errorMessage String?  // Add this field
+  user        User      @relation(fields: [userId], references: [id])
+  accounts    ConnectedAccount[]
+
+  @@map("stream_sessions")
+}

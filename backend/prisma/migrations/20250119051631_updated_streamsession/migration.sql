@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "stream_sessions" ADD COLUMN     "bitrate" INTEGER NOT NULL DEFAULT 2500,
+ADD COLUMN     "frameRate" INTEGER NOT NULL DEFAULT 30,
+ADD COLUMN     "quality" TEXT NOT NULL DEFAULT '1080p',
+ADD COLUMN     "resolution" TEXT NOT NULL DEFAULT '1920x1080',
+ADD COLUMN     "rtmpUrl" TEXT,
+ADD COLUMN     "streamKey" TEXT;
