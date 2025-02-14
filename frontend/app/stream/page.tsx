@@ -25,18 +25,20 @@ const Page: React.FC = () => {
 	const userFirstName = user?.name.split(" ")[0] || "User";
 
 	return (
-		<div className="flex flex-col h-screen max-h-screen overflow-hidden w-full max-w-[1300px] mx-auto">
+		<div className="flex flex-col h-screen w-full max-w-[1300px] mx-auto">
 			<Navbar />
-			<h1 className="text-foreground text-xl font-medium mb-4">
-				Hi {userFirstName}, let&apos;s start streaming!
-			</h1>
 
-			<div className="flex flex-col sm:flex-row flex-1 sm:gap-10 bg-background text-foreground overflow-hidden">
-				<div className="flex-1 h-full">
-					<VideoPreview />
+			<div className="flex flex-col flex-1 mt-12 overflow-hidden">
+				<h1 className="text-foreground text-lg font-medium mb-4">
+					Hi {userFirstName}, let&apos;s start streaming!
+				</h1>
+				<div className="flex flex-1 sm:flex-row sm:gap-10 bg-background text-foreground overflow-hidden">
+					<div className="flex-1 flex h-full">
+						<VideoPreview />
+					</div>
+
+					<CommentSection />
 				</div>
-
-				<CommentSection />
 			</div>
 		</div>
 	);

@@ -46,7 +46,7 @@ const VideoPreview: React.FC = () => {
 	const handleCameraStart = () => startCamera(constraints);
 
 	return (
-		<div className="relative flex flex-col h-full w-full bg-background text-foreground">
+		<div className="relative flex flex-col h-full w-full bg-background text-foreground flex-1">
 			<div className="relative flex-1 bg-black">
 				<video
 					ref={videoRef}
