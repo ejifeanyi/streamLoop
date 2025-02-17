@@ -20,27 +20,12 @@ interface SignInButtonProps {
 	className?: string;
 }
 
-const AuthButton = ({
-	session,
-	variant = "default",
-	className = "",
-}: SignInButtonProps) => {
+const AuthButton = ({ session }: SignInButtonProps) => {
 	const { signIn, signOut } = useAuth();
 
-	if (variant === "minimal") {
-		return session?.user ? (
-			<Button onClick={signOut} variant="secondary">
-				Sign Out
-			</Button>
-		) : (
-			<Button onClick={signIn}>Sign In</Button>
-		);
-	}
 	return session?.user ? (
 		<div>
-			<Button onClick={signOut} variant="secondary">
-				Sign Out
-			</Button>
+			<Button onClick={signOut}>Sign Out</Button>
 		</div>
 	) : (
 		<Button onClick={signIn}>Sign In</Button>

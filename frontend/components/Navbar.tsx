@@ -7,11 +7,14 @@ import { Button } from "./ui/button";
 import { Container } from "./Container";
 import classNames from "classnames";
 import { useTheme } from "next-themes";
+import ConnectAccountModal from "./ConnectAccountModal";
+import { useAuth } from "@/app/AuthContext";
 
 export const Navbar = () => {
 	const [hamburgerMenuIsOpen, setHamburgerMenuIsOpen] = useState(false);
 	const { theme, setTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
+	const { signIn, signOut, user } = useAuth();
 
 	// Ensure component is mounted to avoid hydration mismatch
 	useEffect(() => {
@@ -60,41 +63,11 @@ export const Navbar = () => {
 								? "translate-x-0 opacity-100"
 								: "translate-x-[-100vw] opacity-0"
 						)}
-					>
-						{/* <ul
-							className={classNames(
-								"flex h-full flex-col md:flex-row md:items-center [&_li]:ml-6 [&_li]:border-b [&_li]:border-grey-dark md:[&_li]:border-none",
-								"ease-in [&_a:hover]:text-grey [&_a]:flex [&_a]:h-navigation-height [&_a]:w-full [&_a]:translate-y-8 [&_a]:items-center [&_a]:text-lg [&_a]:transition-[color,transform] [&_a]:duration-300 md:[&_a]:translate-y-0 md:[&_a]:text-sm [&_a]:md:transition-colors",
-								hamburgerMenuIsOpen && "[&_a]:translate-y-0"
-							)}
-						> */}
-						{/* <li>
-								<Link href="#">Features</Link>
-							</li>
-							<li>
-								<Link href="#">Method</Link>
-							</li>
-							<li className="md:hidden lg:block">
-								<Link href="#">Customers</Link>
-							</li>
-							<li className="md:hidden lg:block">
-								<Link href="#">Changelog</Link>
-							</li>
-							<li className="md:hidden lg:block">
-								<Link href="#">Integrations</Link>
-							</li>
-							<li>
-								<Link href="#">Pricing</Link>
-							</li>
-							<li>
-								<Link href="#">Company</Link>
-							</li> */}
-						{/* </ul> */}
-					</nav>
+					></nav>
 				</div>
 
 				<div className="ml-auto gap-2 flex h-full items-center">
-					<Button variant="ghost">Connect Account</Button>
+					{user && <ConnectAccountModal />}
 					<Button
 						variant="outline"
 						size="icon"
@@ -108,7 +81,11 @@ export const Navbar = () => {
 								<Sun className="h-5 w-5" />
 							))}
 					</Button>
-					<Button>Sign out</Button>
+					{user ? (
+						<Button onClick={signOut}>Sign out</Button>
+					) : (
+						<Button onClick={signIn}>Sign in</Button>
+					)}
 				</div>
 
 				<button

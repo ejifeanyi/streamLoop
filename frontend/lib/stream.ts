@@ -1,21 +1,22 @@
 export const streamApi = {
 	async createStream(title: string) {
+		// First, create the stream in your database
 		const response = await fetch("/api/stream/create", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			credentials: "include", // Important for Passport.js sessions
+			credentials: "include",
 			body: JSON.stringify({
 				title,
 				accountIds: [],
 				quality: "1080p",
-				bitrate: 4000000, // Increased to 4Mbps for better quality
+				bitrate: 4000000,
 				resolution: "1920x1080",
 				frameRate: 30,
-				videoCodec: "h264", // Explicitly set video codec
-				audioCodec: "aac", // Explicitly set audio codec
-				audioRate: "128k", // Set audio bitrate
+				videoCodec: "h264",
+				audioCodec: "aac",
+				audioRate: "128k",
 			}),
 		});
 
@@ -27,7 +28,41 @@ export const streamApi = {
 			);
 		}
 
-		return response.json();
+		const streamData = await response.json();
+
+		// Create a YouTube live broadcast
+		const youtubeResponse = await fetch(
+			"/api/platform/youtube/create-broadcast",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+				body: JSON.stringify({
+					title,
+					description: "Live stream from my app", // Customize this
+					scheduledStartTime: new Date().toISOString(), // Start immediately
+				}),
+			}
+		);
+
+		if (!youtubeResponse.ok) {
+			const errorText = await youtubeResponse.text();
+			console.error("YouTube broadcast creation failed:", errorText);
+			throw new Error(`Failed to create YouTube broadcast: ${errorText}`);
+		}
+
+		const youtubeData = await youtubeResponse.json();
+
+		// Return both stream data and YouTube broadcast details
+		return {
+			...streamData,
+			youtubeData: {
+				rtmpUrl: youtubeData.rtmpUrl,
+				streamKey: youtubeData.streamKey,
+			},
+		};
 	},
 
 	async startStream(streamId: string) {

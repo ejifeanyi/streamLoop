@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import Providers from "./Providers";
+import { cn } from "@/lib/utils";
 
 const poppins = Poppins({
 	subsets: ["latin"],
@@ -20,12 +21,18 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang="en" className="scrollbar" suppressHydrationWarning>
 			<body
-				className={`${poppins.className} antialiased`}
+				className={cn(
+					"min-h-screen bg-background text-foreground antialiased !font-default overflow-x-hidden",
+					poppins.className
+				)}
 				suppressHydrationWarning
 			>
-				<Providers>{children}</Providers>
+				<Providers>
+					<Toaster richColors theme="dark" position="top-right" />
+					{children}
+				</Providers>
 			</body>
 		</html>
 	);

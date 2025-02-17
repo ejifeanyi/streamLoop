@@ -14,7 +14,7 @@ export function middleware(req: NextRequest) {
 	return NextResponse.next();
 }
 
-// Configure the matcher to protect the /dashboard route
+// Configure the matcher to protect the /stream route
 export const config = {
-	matcher: ["/dashboard/:path*"],
+	matcher: ["/stream/:path*"],
 };

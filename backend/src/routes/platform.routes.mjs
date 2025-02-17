@@ -4,6 +4,7 @@ import passport from "passport";
 import { isAuthenticated, validatePlatform } from "../middleware/auth.mjs";
 import { PlatformService } from "../services/platform.service.mjs";
 import { YOUTUBE_SCOPES } from "../config/youtube.mjs";
+import { refreshYouTubeToken } from "../config/youtube.mjs";
 
 const router = express.Router();
 
@@ -69,6 +70,74 @@ router.get("/accounts", isAuthenticated, async (req, res) => {
 	}
 });
 
+// src/routes/platform.routes.js
+router.post("/youtube/create-broadcast", isAuthenticated, async (req, res) => {
+	try {
+		const { title, description, scheduledStartTime } = req.body;
+
+		// Get the user's YouTube credentials
+		const youtubeAccount = req.user.connectedAccounts.find(
+			(account) => account.platform === "YOUTUBE"
+		);
+
+		if (!youtubeAccount?.refreshToken) {
+			throw new Error("No YouTube refresh token found");
+		}
+
+		// Refresh the access token
+		const { accessToken } = await refreshYouTubeToken(
+			youtubeAccount.refreshToken
+		);
+
+		// Create a live broadcast
+		const broadcastResponse = await youtube.liveBroadcasts.insert({
+			part: ["snippet", "status"],
+			requestBody: {
+				snippet: {
+					title,
+					description,
+					scheduledStartTime,
+				},
+				status: {
+					privacyStatus: "public", // or "unlisted" or "private"
+				},
+			},
+			auth: youtubeOAuth2Client,
+		});
+
+		// Bind the broadcast to a stream
+		const streamResponse = await youtube.liveStreams.insert({
+			part: ["snippet", "cdn"],
+			requestBody: {
+				snippet: {
+					title,
+				},
+				cdn: {
+					format: "1080p",
+					ingestionType: "rtmp",
+				},
+			},
+			auth: youtubeOAuth2Client,
+		});
+
+		// Bind the broadcast to the stream
+		await youtube.liveBroadcasts.bind({
+			id: broadcastResponse.data.id,
+			part: ["id", "contentDetails"],
+			streamId: streamResponse.data.id,
+			auth: youtubeOAuth2Client,
+		});
+
+		res.json({
+			rtmpUrl: streamResponse.data.cdn.ingestionInfo.ingestionAddress,
+			streamKey: streamResponse.data.cdn.ingestionInfo.streamName,
+		});
+	} catch (error) {
+		console.error("Error creating YouTube broadcast:", error);
+		res.status(500).json({ error: error.message });
+	}
+});
+
 router.delete(
 	"/disconnect/:platform",
 	isAuthenticated,
@@ -109,6 +178,5 @@ router.patch(
 		}
 	}
 );
-
 
 export default router;

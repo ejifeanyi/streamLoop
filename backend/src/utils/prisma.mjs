@@ -4,10 +4,15 @@ import { PrismaClient } from "@prisma/client";
 const prismaOptions = {
 	log: ["error", "warn"],
 	errorFormat: "pretty",
+	datasources: {
+		db: {
+			url: process.env.DATABASE_URL,
+		},
+	},
 	__internal: {
 		engine: {
-			connectionTimeout: 20000, // 20s connection timeout
-			pollInterval: 100,
+			connectionTimeout: 30000,
+			pollInterval: 500,
 		},
 	},
 };

@@ -6,7 +6,6 @@ import { prisma } from "../utils/prisma.mjs";
 export const YOUTUBE_SCOPES = [
 	"https://www.googleapis.com/auth/youtube.force-ssl",
 	"https://www.googleapis.com/auth/youtube",
-	"https://www.googleapis.com/auth/youtube.live_stream",
 ];
 
 const youtube = google.youtube("v3");
