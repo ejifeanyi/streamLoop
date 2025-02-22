@@ -17,7 +17,14 @@ import MagicBadge from "@/components/ui/magic-badge";
 import { BentoCard, BentoGrid, CARDS } from "@/components/ui/bento-grid";
 import MagicCard from "@/components/ui/magic-card";
 import PricingCards from "@/components/pricing-cards";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { LampContainer } from "@/components/LampContainer";
 import { Navbar } from "@/components/Navbar";
 import Footer from "@/components/footer";
@@ -113,28 +120,28 @@ export default function Home() {
 									<span className="backdrop absolute inset-[1px] rounded-full bg-neutral-950 transition-colors duration-200 group-hover:bg-neutral-900" />
 									<span className="h-full w-full blur-md absolute bottom-0 inset-x-0 bg-gradient-to-tr from-primary/20"></span>
 									<span className="z-10 py-0.5 text-sm text-neutral-100 flex items-center justify-center gap-1">
-										✨ A top-notch template designed for success
+										✨ A top-notch source for streaming
 										<ArrowRightIcon className="ml-1 size-3 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
 									</span>
 								</button>
-								<h1 className="text-foreground text-center py-6 text-5xl font-medium tracking-normal text-balance sm:text-6xl md:text-7xl lg:text-8xl !leading-[1.15] w-full font-heading">
-									Premium{" "}
+								<h1 className="text-foreground text-center py-6 text-5xl font-bold tracking-normal text-balance sm:text-6xl md:text-7xl lg:text-8xl !leading-[1.15] w-full font-heading">
 									<span className="text-transparent mx-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text inline-bloc">
-										saas
+										Stream Everywhere,
 									</span>
-									template to kickstart your project
+									<br />
+									All at Once
 								</h1>
 								<p className="mb-12 text-lg tracking-tight text-muted-foreground md:text-xl text-balance">
-									Effortlessly streamline your link management with Faria.
+									Reach your audience on multiple platforms simultaneously
 									<br className="hidden md:block" />
 									<span className="hidden md:block">
-										Shorten, track, and organize all your links in one place.
+										with seamless control.
 									</span>
 								</p>
 								<div className="flex items-center justify-center whitespace-nowrap gap-4 z-50">
 									<Button asChild>
 										<Link href={"/auth/sign-in"} className="flex items-center">
-											Start creating for free
+											Start Streaming for Free
 											<ArrowRightIcon className="w-4 h-4 ml-2" />
 										</Link>
 									</Button>
@@ -214,7 +221,7 @@ export default function Home() {
 							<div className="flex flex-col items-center lg:items-center justify-center w-full py-8 max-w-xl mx-auto">
 								<MagicBadge title="The Process" />
 								<h2 className="text-center lg:text-center text-3xl md:text-5xl !leading-[1.1] font-medium font-heading text-foreground mt-6">
-									Effortless link management in 3 steps
+									Effortless Streaming in 3 Steps
 								</h2>
 								<p className="mt-4 text-center lg:text-center text-lg text-muted-foreground max-w-lg">
 									Follow these simple steps to optimize, organize, and share

@@ -11,6 +11,7 @@ export const useStreamSetup = ({
 	shouldCleanup,
 }: UseStreamSetupProps) => {
 	const [isCameraReady, setIsCameraReady] = useState(false);
+	const [currentQuality, setCurrentQuality] = useState("720p");
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const streamRef = useRef<MediaStream | null>(null);
 	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -18,13 +19,8 @@ export const useStreamSetup = ({
 	const cleanupInProgressRef = useRef(false);
 
 	const cleanup = useCallback(() => {
-		if (!shouldCleanup) {
-			console.log("Cleanup skipped - not initialized");
-			return;
-		}
-
-		if (cleanupInProgressRef.current) {
-			console.log("Cleanup already in progress");
+		if (!shouldCleanup || cleanupInProgressRef.current) {
+			console.log("Cleanup skipped - not initialized or already in progress");
 			return;
 		}
 
@@ -32,24 +28,19 @@ export const useStreamSetup = ({
 		console.log("🔍 Cleanup called");
 
 		try {
-			if (
-				mediaRecorderRef.current &&
-				mediaRecorderRef.current.state === "recording"
-			) {
+			if (mediaRecorderRef.current?.state === "recording") {
 				mediaRecorderRef.current.stop();
 			}
 
 			if (
-				wsRef.current &&
-				(wsRef.current.readyState === WebSocket.OPEN ||
-					wsRef.current.readyState === WebSocket.CONNECTING)
+				wsRef.current?.readyState === WebSocket.OPEN ||
+				wsRef.current?.readyState === WebSocket.CONNECTING
 			) {
 				wsRef.current.close();
 			}
 
 			if (streamRef.current) {
-				const tracks = streamRef.current.getTracks();
-				tracks.forEach((track) => {
+				streamRef.current.getTracks().forEach((track) => {
 					if (track.readyState === "live") {
 						track.stop();
 					}
@@ -89,16 +80,8 @@ export const useStreamSetup = ({
 
 				if (videoRef.current) {
 					videoRef.current.srcObject = stream;
-					try {
-						await videoRef.current.play();
-						setIsCameraReady(true);
-					} catch (playError) {
-						throw new Error(
-							`Failed to play video: ${
-								playError instanceof Error ? playError.message : "Unknown error"
-							}`
-						);
-					}
+					await videoRef.current.play();
+					setIsCameraReady(true);
 				} else {
 					throw new Error("Video element not found");
 				}
@@ -113,6 +96,10 @@ export const useStreamSetup = ({
 		[cleanup, onError]
 	);
 
+	const updateStreamQuality = useCallback((quality: string) => {
+		setCurrentQuality(quality);
+	}, []);
+
 	return {
 		isCameraReady,
 		videoRef,
@@ -121,5 +108,7 @@ export const useStreamSetup = ({
 		wsRef,
 		startCamera,
 		cleanup,
+		currentQuality,
+		updateStreamQuality,
 	};
 };

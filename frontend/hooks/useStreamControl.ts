@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
 import { streamApi } from "@/lib/stream";
+import { useCallback, useState } from "react";
 
 interface UseStreamControlProps {
 	streamRef: React.RefObject<MediaStream | null>;
@@ -8,6 +8,15 @@ interface UseStreamControlProps {
 	cleanup: () => void;
 	onError: (error: string) => void;
 }
+
+const getSupportedMimeType = () => {
+	const types = [
+		"video/webm;codecs=vp9",
+		"video/webm;codecs=vp8",
+		"video/webm",
+	];
+	return types.find((type) => MediaRecorder.isTypeSupported(type));
+};
 
 export const useStreamControl = ({
 	streamRef,
@@ -19,22 +28,107 @@ export const useStreamControl = ({
 	const [isLive, setIsLive] = useState(false);
 	const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
 
-	const getSupportedMimeType = () => {
-		const types = [
-			"video/webm;codecs=h264,opus",
-			"video/webm;codecs=vp8,opus",
-			"video/webm;codecs=vp9,opus",
-			"video/webm",
-		];
+	const handleStartLive = useCallback(
+		async (title: string) => {
+			if (!title.trim()) {
+				onError("Please enter a stream title");
+				return;
+			}
 
-		console.log("🎥 Checking supported MIME types...");
-		for (const type of types) {
-			const isSupported = MediaRecorder.isTypeSupported(type);
-			console.log(`${type}: ${isSupported ? "✅" : "❌"}`);
-			if (isSupported) return type;
-		}
-		return "";
-	};
+			try {
+				if (!streamRef.current?.active) {
+					onError("Camera stream is not active. Please start camera first.");
+					return;
+				}
+
+				const session = await streamApi.createStream(title);
+				setCurrentStreamId(session.id);
+				const streamData = await streamApi.startStream(session.id);
+
+				const wsUrl = `${
+					window.location.protocol === "https:" ? "wss:" : "ws:"
+				}//localhost:5001/ws`;
+				const ws = new WebSocket(wsUrl);
+				wsRef.current = ws;
+
+				ws.onopen = () => {
+					console.log("🌐 WebSocket connected");
+
+					if (!streamRef.current?.active) {
+						console.error(
+							"Stream validation failed after WebSocket connection"
+						);
+						onError("Stream became inactive during setup");
+						ws.close();
+						return;
+					}
+
+					ws.send(
+						JSON.stringify({
+							type: "config",
+							streamId: session.id,
+							rtmpUrl: streamData.youtubeData.rtmpUrl,
+							streamKey: streamData.youtubeData.streamKey,
+						})
+
+					);
+					console.log('rtmpUrl', streamData.youtubeData.rtmpUrl);
+					console.log('streamKey', streamData.youtubeData.streamKey);
+
+					const mimeType = getSupportedMimeType();
+					if (!mimeType) {
+						onError("No supported video format found");
+						ws.close();
+						return;
+					}
+
+					try {
+						const mediaRecorder = new MediaRecorder(streamRef.current, {
+							mimeType,
+							videoBitsPerSecond: 2500000,
+							audioBitsPerSecond: 128000,
+						});
+
+						mediaRecorderRef.current = mediaRecorder;
+
+						mediaRecorder.ondataavailable = async (event) => {
+							if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
+								ws.send(await event.data.arrayBuffer());
+							}
+						};
+
+						mediaRecorder.start(1000);
+						setIsLive(true);
+					} catch (error) {
+						console.error("MediaRecorder initialization error:", error);
+						onError("Failed to initialize recording");
+						ws.close();
+					}
+				};
+
+				ws.onerror = (error) => {
+					console.error("WebSocket error:", error);
+					onError("WebSocket connection failed");
+					cleanup();
+				};
+
+				ws.onclose = () => {
+					console.log("WebSocket closed");
+					if (isLive) {
+						setIsLive(false);
+						cleanup();
+					}
+				};
+			} catch (error) {
+				console.error("❌ Stream start error:", error);
+				onError(
+					error instanceof Error ? error.message : "Failed to start stream"
+				);
+				cleanup();
+			}
+		},
+		[streamRef, wsRef, mediaRecorderRef, onError, cleanup, isLive]
+	);
 
 	const handleEndLive = useCallback(async () => {
 		try {
@@ -50,67 +144,6 @@ export const useStreamControl = ({
 			cleanup();
 		}
 	}, [currentStreamId, cleanup, onError]);
-
-	const handleStartLive = useCallback(
-		async (title: string) => {
-			if (!streamRef.current || !streamRef.current.active) {
-				onError("Camera stream is not active - please restart camera");
-				return;
-			}
-
-			if (!title.trim()) {
-				onError("Please enter a stream title");
-				return;
-			}
-
-			try {
-				const session = await streamApi.createStream(title);
-				setCurrentStreamId(session.id);
-
-				const streamData = await streamApi.startStream(session.id);
-
-				const wsUrl = `${
-					window.location.protocol === "https:" ? "wss:" : "ws:"
-				}//localhost:5001/ws`;
-				const ws = new WebSocket(wsUrl);
-				wsRef.current = ws;
-
-				ws.onopen = () => {
-					console.log("🌐 WebSocket connected");
-					ws.send(
-						JSON.stringify({
-							type: "config",
-							streamId: session.id,
-							rtmpUrl: streamData.youtubeData.rtmpUrl,
-							streamKey: streamData.youtubeData.streamKey,
-						})
-					);
-
-					const mediaRecorder = new MediaRecorder(streamRef.current!, {
-						mimeType: getSupportedMimeType(),
-						videoBitsPerSecond: 2500000,
-						audioBitsPerSecond: 128000,
-					});
-
-					mediaRecorder.ondataavailable = async (event) => {
-						if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-							ws.send(await event.data.arrayBuffer());
-						}
-					};
-
-					mediaRecorderRef.current = mediaRecorder;
-					mediaRecorder.start(1000);
-					setIsLive(true);
-				};
-			} catch (error) {
-				console.error("❌ Stream start error:", error);
-				onError(
-					error instanceof Error ? error.message : "Failed to start stream"
-				);
-			}
-		},
-		[streamRef, wsRef, mediaRecorderRef, onError]
-	);
 
 	return {
 		isLive,

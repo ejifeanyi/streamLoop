@@ -34,21 +34,18 @@ export const COMPANIES = [
 
 export const PROCESS = [
 	{
-		title: "Organize Your Links",
-		description:
-			"Efficiently categorize and tag your links for quick access and easy management.",
+		title: "Sign up",
+		description: " Create an account in seconds.",
 		icon: FolderOpenIcon,
 	},
 	{
-		title: "Shorten and Customize",
-		description:
-			"Create concise, branded links that are easy to share and track.",
+		title: "Connect Accounts",
+		description: "Link your streaming platforms with a few clicks.",
 		icon: WandSparklesIcon,
 	},
 	{
-		title: "Analyze and Optimize",
-		description:
-			"Gain insights into link performance and optimize for better engagement.",
+		title: "Go Live",
+		description: "Start streaming instantly with optimized settings.",
 		icon: BarChart3Icon,
 	},
 ] as const;

@@ -12,8 +12,9 @@ const VideoPreview: React.FC = () => {
 	const [title, setTitle] = useState("");
 	const [error, setError] = useState<string>("");
 	const [isInitialized, setIsInitialized] = useState(false);
-
 	const constraints = useMediaConstraints();
+
+	// Initialize state for stream control first
 	const {
 		isCameraReady,
 		videoRef,
@@ -22,11 +23,13 @@ const VideoPreview: React.FC = () => {
 		wsRef,
 		startCamera,
 		cleanup,
+		currentQuality,
 	} = useStreamSetup({
 		onError: setError,
-		shouldCleanup: isInitialized,
+		shouldCleanup: isInitialized, // Only cleanup when initialized
 	});
 
+	// Then use the stream control hooks
 	const { isLive, handleStartLive, handleEndLive } = useStreamControl({
 		streamRef,
 		wsRef,
@@ -34,6 +37,13 @@ const VideoPreview: React.FC = () => {
 		cleanup,
 		onError: setError,
 	});
+
+	// Optional: Add quality indicator
+	const QualityIndicator = () => (
+		<div className="absolute top-4 right-4 px-2 py-1 rounded bg-black bg-opacity-50 text-white">
+			Quality: {currentQuality}
+		</div>
+	);
 
 	// Handle authentication
 	useEffect(() => {
@@ -48,14 +58,10 @@ const VideoPreview: React.FC = () => {
 	useEffect(() => {
 		return () => {
 			if (isInitialized) {
-				if (isLive) {
-					handleEndLive();
-				} else {
-					cleanup();
-				}
+				cleanup();
 			}
 		};
-	}, [isInitialized, isLive, handleEndLive, cleanup]);
+	}, [isInitialized, cleanup]);
 
 	const handleCameraStart = useCallback(() => {
 		if (isInitialized) {
@@ -91,6 +97,7 @@ const VideoPreview: React.FC = () => {
 					playsInline
 					muted
 				/>
+				{isCameraReady && <QualityIndicator />}
 
 				{!isCameraReady && (
 					<div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 text-white">

@@ -24,7 +24,7 @@ export default function RootLayout({
 		<html lang="en" className="scrollbar" suppressHydrationWarning>
 			<body
 				className={cn(
-					"min-h-screen bg-background text-foreground antialiased !font-default overflow-x-hidden",
+					"min-h-screen bg-background text-foreground antialiased  overflow-x-hidden",
 					poppins.className
 				)}
 				suppressHydrationWarning

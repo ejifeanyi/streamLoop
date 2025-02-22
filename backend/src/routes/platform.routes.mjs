@@ -1,10 +1,14 @@
 // src/routes/platform.routes.js
 import express from "express";
 import passport from "passport";
+import { google } from "googleapis";
 import { isAuthenticated, validatePlatform } from "../middleware/auth.mjs";
 import { PlatformService } from "../services/platform.service.mjs";
-import { YOUTUBE_SCOPES } from "../config/youtube.mjs";
-import { refreshYouTubeToken } from "../config/youtube.mjs";
+import {
+	YOUTUBE_SCOPES,
+	refreshYouTubeToken,
+	youtubeOAuth2Client,
+} from "../config/youtube.mjs";
 
 const router = express.Router();
 
@@ -89,6 +93,18 @@ router.post("/youtube/create-broadcast", isAuthenticated, async (req, res) => {
 			youtubeAccount.refreshToken
 		);
 
+		// Initialize the YouTube API client
+		const youtube = google.youtube({
+			version: "v3",
+			auth: youtubeOAuth2Client,
+		});
+
+		// Set the credentials
+		youtubeOAuth2Client.setCredentials({
+			access_token: accessToken,
+			refresh_token: youtubeAccount.refreshToken,
+		});
+
 		// Create a live broadcast
 		const broadcastResponse = await youtube.liveBroadcasts.insert({
 			part: ["snippet", "status"],
@@ -99,25 +115,26 @@ router.post("/youtube/create-broadcast", isAuthenticated, async (req, res) => {
 					scheduledStartTime,
 				},
 				status: {
-					privacyStatus: "public", // or "unlisted" or "private"
+					privacyStatus: "public",
+					selfDeclaredMadeForKids: false,
 				},
 			},
-			auth: youtubeOAuth2Client,
 		});
 
-		// Bind the broadcast to a stream
+		// Create a stream optimized for browser-based streaming
 		const streamResponse = await youtube.liveStreams.insert({
 			part: ["snippet", "cdn"],
 			requestBody: {
 				snippet: {
-					title,
+					title: `${title} - Stream`,
 				},
 				cdn: {
-					format: "1080p",
+					frameRate: "30fps",
 					ingestionType: "rtmp",
+					resolution: "720p", // Default to 720p for better compatibility
+					format: "720p", // Match resolution for consistency
 				},
 			},
-			auth: youtubeOAuth2Client,
 		});
 
 		// Bind the broadcast to the stream
@@ -125,12 +142,30 @@ router.post("/youtube/create-broadcast", isAuthenticated, async (req, res) => {
 			id: broadcastResponse.data.id,
 			part: ["id", "contentDetails"],
 			streamId: streamResponse.data.id,
-			auth: youtubeOAuth2Client,
 		});
 
+		// Return stream details
 		res.json({
+			broadcastId: broadcastResponse.data.id,
+			streamId: streamResponse.data.id,
 			rtmpUrl: streamResponse.data.cdn.ingestionInfo.ingestionAddress,
 			streamKey: streamResponse.data.cdn.ingestionInfo.streamName,
+			streamConstraints: {
+				audio: {
+					channelCount: 2,
+					echoCancellation: true,
+					noiseSuppression: true,
+					sampleRate: 44100,
+					bitrate: 128000, // 128 kbps for audio
+				},
+				video: {
+					width: { ideal: 1280, min: 640 },
+					height: { ideal: 720, min: 360 },
+					frameRate: { ideal: 30, min: 15 },
+					facingMode: "user",
+					aspectRatio: 16 / 9,
+				},
+			},
 		});
 	} catch (error) {
 		console.error("Error creating YouTube broadcast:", error);
