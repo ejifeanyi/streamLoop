@@ -53,6 +53,16 @@ export const useStreamControl = ({
 
 				ws.onopen = () => {
 					console.log("🌐 WebSocket connected");
+					console.log("RTMP Details:", {
+						rtmpUrl: streamData.rtmpUrl,
+						streamKey: streamData.streamKey,
+					});
+					try {
+        ws.send(JSON.stringify({ type: "ping" }));
+        console.log("Ping sent successfully");
+    } catch (err) {
+        console.error("Failed to send ping:", err);
+    }
 
 					if (!streamRef.current?.active) {
 						console.error(
@@ -63,6 +73,8 @@ export const useStreamControl = ({
 						return;
 					}
 
+					ws.send(JSON.stringify({ type: "test" }));
+
 					ws.send(
 						JSON.stringify({
 							type: "config",
@@ -70,10 +82,7 @@ export const useStreamControl = ({
 							rtmpUrl: streamData.youtubeData.rtmpUrl,
 							streamKey: streamData.youtubeData.streamKey,
 						})
-
 					);
-					console.log('rtmpUrl', streamData.youtubeData.rtmpUrl);
-					console.log('streamKey', streamData.youtubeData.streamKey);
 
 					const mimeType = getSupportedMimeType();
 					if (!mimeType) {
@@ -92,8 +101,15 @@ export const useStreamControl = ({
 						mediaRecorderRef.current = mediaRecorder;
 
 						mediaRecorder.ondataavailable = async (event) => {
+							console.log(`📦 Data size: ${event.data.size}`);
 							if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-								ws.send(await event.data.arrayBuffer());
+								try {
+									const buffer = await event.data.arrayBuffer();
+									ws.send(buffer);
+									console.log("📤 Sent data to WebSocket");
+								} catch (err) {
+									console.error("❌ Error sending data:", err);
+								}
 							}
 						};
 

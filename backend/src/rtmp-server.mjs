@@ -14,7 +14,12 @@ const config = {
 	http: {
 		port: 8000,
 		allow_origin: "*",
+		mediaroot: "./media",
 	},
+	 trans: {
+        ffmpeg: process.env.FFMPEG_PATH || 'ffmpeg',
+        tasks: []
+    }
 };
 
 const nms = new NodeMediaServer(config);
@@ -69,11 +74,11 @@ nms.on("prePublish", async (id, StreamPath, args) => {
 			"-pix_fmt",
 			"yuv420p",
 			"-g",
-			"60",
+			"60", // GOP size (2 * framerate)
 			"-r",
-			"30", // Force 30fps output
-			"-keyint_min",
-			"30",
+			"30", // framerate
+			"-force_key_frames",
+			"expr:gte(t,n_forced*2)", // Force keyframe every 2 seconds
 			"-x264opts",
 			"no-scenecut",
 			"-acodec",

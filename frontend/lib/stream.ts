@@ -41,8 +41,8 @@ export const streamApi = {
 				credentials: "include",
 				body: JSON.stringify({
 					title,
-					description: "Live stream from my app", // Customize this
-					scheduledStartTime: new Date().toISOString(), // Start immediately
+					description: "Live stream from my app",
+					scheduledStartTime: new Date().toISOString(),
 				}),
 			}
 		);
@@ -55,7 +55,6 @@ export const streamApi = {
 
 		const youtubeData = await youtubeResponse.json();
 
-		// Return both stream data and YouTube broadcast details
 		return {
 			...streamData,
 			youtubeData: {
@@ -85,8 +84,8 @@ export const streamApi = {
 		const data = await response.json();
 		console.log(`stream start response:`, data);
 
-		// Check for youtubeData with the correct property names
-		if (!data.youtubeData?.rtmpUrl || !data.youtubeData?.streamName) {
+		// Updated property check to match backend response
+		if (!data.youtubeData?.rtmpUrl || !data.youtubeData?.streamKey) {
 			console.error("full response data:", data);
 			throw new Error("Missing RTMP connection details");
 		}
@@ -95,7 +94,7 @@ export const streamApi = {
 			...data,
 			youtubeData: {
 				rtmpUrl: data.youtubeData.rtmpUrl,
-				streamKey: data.youtubeData.streamName, // Use streamName as streamKey
+				streamKey: data.youtubeData.streamKey,
 			},
 		};
 	},

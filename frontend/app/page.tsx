@@ -1,22 +1,18 @@
 "use client";
 
 import Loader from "@/components/Loader";
-// import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { ArrowRightIcon, CreditCardIcon, StarIcon } from "lucide-react";
+import { ArrowRightIcon, StarIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-// import { useAuth } from "./AuthContext";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import AnimationContainer from "@/components/AnimationContainer";
 import { BorderBeam } from "@/components/ui/border-beam";
 import { COMPANIES, PROCESS, REVIEWS } from "@/constants/misc";
 import Image from "next/image";
 import MagicBadge from "@/components/ui/magic-badge";
-import { BentoCard, BentoGrid, CARDS } from "@/components/ui/bento-grid";
 import MagicCard from "@/components/ui/magic-card";
-import PricingCards from "@/components/pricing-cards";
 import {
 	Card,
 	CardContent,
@@ -43,10 +39,8 @@ interface Session {
 export default function Home() {
 	const [session, setSession] = useState<Session | null>(null);
 	const [loading, setLoading] = useState(true);
-	// const { signIn } = useAuth();
 	const router = useRouter();
 
-	// Effect for checking authentication
 	useEffect(() => {
 		const checkAuth = async () => {
 			try {
@@ -89,7 +83,6 @@ export default function Home() {
 		checkAuth();
 	}, []);
 
-	// Separate effect for handling navigation
 	useEffect(() => {
 		if (session?.user) {
 			router.push("/stream");
@@ -104,7 +97,7 @@ export default function Home() {
 		<>
 			<div
 				id="home"
-				className="absolute inset-0 dark:bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[linear-gradient(to_right,#161616_1px,transparent_1px),linear-gradient(to_bottom,#161616_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] h-full"
+				className="absolute inset-0 dark:bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[linear-gradient(to_right,#161616_1px,transparent_1px),linear-gradient(to_bottom,#161616_1px,transparent_1px)] bg-[size:1.5rem_1.5rem] opacity-25 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_50%,transparent_110%)] h-full"
 			/>
 			<Navbar />
 			<main className="mt-20 mx-auto w-full z-0 relative">
@@ -155,7 +148,16 @@ export default function Home() {
 								<div className="absolute md:top-[10%] left-1/2 gradient w-3/4 -translate-x-1/2 h-1/4 md:h-1/3 inset-0 blur-[5rem] animate-image-glow"></div>
 								<div className="-m-2 rounded-xl p-2 ring-1 ring-inset ring-foreground/20 lg:-m-4 lg:rounded-2xl bg-opacity-50 backdrop-blur-3xl">
 									<BorderBeam size={250} duration={12} delay={9} />
-									<div className="w-full h-[400px] bg-black"></div>
+									<div className="w-full h-[400px] bg-black">
+										<Image
+											src="/img/dashboard_01.webp"
+											alt="Your Image"
+											layout="fill"
+											objectFit="cover"
+											className="rounded-xl"
+											priority
+										/>
+									</div>
 									<div className="absolute -bottom-4 inset-x-0 w-full h-1/2 bg-gradient-to-t from-background z-40"></div>
 									<div className="absolute bottom-0 md:-bottom-8 inset-x-0 w-full h-1/4 bg-gradient-to-t from-background z-50"></div>
 								</div>
@@ -193,7 +195,7 @@ export default function Home() {
 					</MaxWidthWrapper>
 
 					{/* Features Section */}
-					<MaxWidthWrapper className="pt-10">
+					{/* <MaxWidthWrapper className="pt-10">
 						<AnimationContainer delay={0.1}>
 							<div className="flex flex-col w-full items-center lg:items-center justify-center py-8">
 								<MagicBadge title="Features" />
@@ -213,7 +215,7 @@ export default function Home() {
 								))}
 							</BentoGrid>
 						</AnimationContainer>
-					</MaxWidthWrapper>
+					</MaxWidthWrapper> */}
 
 					{/* Process Section */}
 					<MaxWidthWrapper className="py-10">
@@ -257,7 +259,7 @@ export default function Home() {
 					</MaxWidthWrapper>
 
 					{/* Pricing Section */}
-					<MaxWidthWrapper className="py-10">
+					{/* <MaxWidthWrapper className="py-10">
 						<AnimationContainer delay={0.1}>
 							<div className="flex flex-col items-center lg:items-center justify-center w-full py-8 max-w-xl mx-auto">
 								<MagicBadge title="Simple Pricing" />
@@ -283,7 +285,7 @@ export default function Home() {
 								</div>
 							</div>
 						</AnimationContainer>
-					</MaxWidthWrapper>
+					</MaxWidthWrapper> */}
 
 					{/* Reviews Section */}
 					<MaxWidthWrapper className="py-10">
@@ -395,12 +397,12 @@ export default function Home() {
 							<LampContainer>
 								<div className="flex flex-col items-center justify-center relative w-full text-center">
 									<h2 className="bg-gradient-to-b from-neutral-200 to-neutral-400 py-4 bg-clip-text text-center text-4xl md:text-7xl !leading-[1.15] font-medium font-heading tracking-tight text-transparent mt-8">
-										Step into the future of link management
+										Step into the future of Streaming
 									</h2>
 									<p className="text-muted-foreground mt-6 max-w-md mx-auto">
-										Experience the cutting-edge solution that transforms how you
-										handle your links. Elevate your online presence with our
-										next-gen platform.
+										Experience the power of Streamloop and take control of your
+										live streaming experience. Get started today and see the
+										difference. We promise you won&apos;t be disappointed. 🚀
 									</p>
 									<div className="mt-6">
 										<Button>

@@ -7,6 +7,11 @@ const router = express.Router();
 
 router.post("/create", isAuthenticated, async (req, res) => {
 	try {
+		console.log("Stream creation request:", {
+			userId: req.user.id,
+			body: req.body,
+		});
+
 		const { title, quality, bitrate, resolution, frameRate } = req.body;
 		const stream = await StreamService.createStream(req.user.id, {
 			title,
@@ -15,9 +20,15 @@ router.post("/create", isAuthenticated, async (req, res) => {
 			resolution,
 			frameRate,
 		});
+
+		console.log("Stream created successfully:", stream);
 		res.json(stream);
 	} catch (error) {
-		console.error("Error creating stream:", error);
+		console.error("Detailed stream creation error:", {
+			message: error.message,
+			stack: error.stack,
+			name: error.name,
+		});
 		res.status(500).json({ error: error.message });
 	}
 });

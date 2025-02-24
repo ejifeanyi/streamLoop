@@ -6,18 +6,17 @@ import { Readable } from "stream";
 export function setupWebSocketServer(server) {
 	const wss = new WebSocketServer({
 		noServer: true,
-		verifyClient: (info, callback) => {
-			const origin = info.origin;
-			const allowedOrigin = process.env.CLIENT_URL;
-			callback(origin === allowedOrigin);
-		},
+		// verifyClient: (info, callback) => {
+		// 	const origin = info.origin;
+		// 	const allowedOrigin = process.env.CLIENT_URL;
+		// 	callback(origin === allowedOrigin);
+		// },
 	});
 
 	const streams = new Map();
 
-	// Handle the upgrade of the HTTP connection to WebSocket
-	// In setupWebSocketServer function
 	server.on("upgrade", (request, socket, head) => {
+		console.log("Upgrade request headers:", request.headers);
 		const { pathname } = parse(request.url || "");
 		console.log("Upgrade request received for path:", pathname);
 
@@ -37,6 +36,8 @@ export function setupWebSocketServer(server) {
 		let streamId = null;
 		let ffmpeg = null;
 		let inputStream = null;
+		let rtmpUrl = null;
+		let streamKey = null;
 
 		ws.on("message", async (message) => {
 			try {
@@ -45,6 +46,8 @@ export function setupWebSocketServer(server) {
 					const config = JSON.parse(message.toString());
 					if (config.type === "config") {
 						streamId = config.streamId;
+						rtmpUrl = config.rtmpUrl;
+						streamKey = config.streamKey;
 
 						// Create a readable stream for FFmpeg input
 						inputStream = new Readable({
@@ -70,22 +73,21 @@ export function setupWebSocketServer(server) {
 							"-g",
 							"60",
 							"-r",
-							"30", // Force 30fps output
-							"-keyint_min",
 							"30",
-							"-x264opts",
-							"no-scenecut",
-							"-acodec",
+							"-force_key_frames",
+							"expr:gte(t,n_forced*2)",
+							"-c:a",
 							"aac",
 							"-ar",
 							"44100",
 							"-b:a",
 							"128k",
-							"-threads",
-							"4",
+							"-ac",
+							"2", // Add this
+							"-shortest", // Add this
 							"-f",
 							"flv",
-							`rtmp://localhost:1935/live/${streamId}`,
+							`${rtmpUrl}/${streamKey}`,
 						]);
 
 						// Add error handlers
@@ -110,12 +112,17 @@ export function setupWebSocketServer(server) {
 						});
 
 						console.log(`Stream configured: ${streamId}`);
+						console.log("🎥 RTMP URL:", rtmpUrl);
+						console.log("🔑 Stream Key:", streamKey);
 						return;
 					}
 				}
 
 				// Handle binary video/audio data
 				if (streamId && streams.has(streamId)) {
+					console.log(
+						`📥 Received data chunk of size: ${message.length} bytes`
+					);
 					const stream = streams.get(streamId);
 					if (stream.inputStream) {
 						stream.inputStream.push(message);
@@ -126,12 +133,11 @@ export function setupWebSocketServer(server) {
 			}
 		});
 
-		// In your websocket.mjs
 		ws.on("close", () => {
 			if (streamId && streams.has(streamId)) {
 				const stream = streams.get(streamId);
 				if (stream.ffmpeg) {
-					stream.ffmpeg.kill("SIGKILL"); // Force kill the FFmpeg process
+					stream.ffmpeg.kill("SIGKILL");
 				}
 				if (stream.inputStream) {
 					stream.inputStream.push(null);
