@@ -19,8 +19,7 @@ const VideoPreview: React.FC = () => {
 		isCameraReady,
 		videoRef,
 		streamRef,
-		mediaRecorderRef,
-		wsRef,
+		socketRef,
 		startCamera,
 		cleanup,
 		currentQuality,
@@ -32,8 +31,7 @@ const VideoPreview: React.FC = () => {
 	// Then use the stream control hooks
 	const { isLive, handleStartLive, handleEndLive } = useStreamControl({
 		streamRef,
-		wsRef,
-		mediaRecorderRef,
+		socketRef,
 		cleanup,
 		onError: setError,
 	});
@@ -64,10 +62,10 @@ const VideoPreview: React.FC = () => {
 	}, [isInitialized, cleanup]);
 
 	const handleCameraStart = useCallback(() => {
-		if (isInitialized) {
-			startCamera(constraints);
+		if (isInitialized && user) {
+			startCamera(constraints, user.id);
 		}
-	}, [isInitialized, startCamera, constraints]);
+	}, [isInitialized, startCamera, constraints, user]);
 
 	if (loading) {
 		return (

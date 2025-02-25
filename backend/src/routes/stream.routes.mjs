@@ -1,68 +1,59 @@
 // src/routes/stream.routes.mjs
-import express from "express";
-import { StreamService } from "../services/stream.service.mjs";
-import { isAuthenticated } from "../middleware/auth.mjs";
+import { Router } from "express";
+import { validateStreamRequest } from "../middleware/stream.middleware.mjs";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/create", isAuthenticated, async (req, res) => {
+// Apply middleware to all stream routes
+router.use(validateStreamRequest);
+
+// Get stream status
+router.get("/status", (req, res) => {
+	const userId = req.user.id;
+	res.status(200).json({
+		userId,
+		isAuthenticated: true,
+		youtubeConnected: !!req.user.youtube,
+	});
+});
+
+// Create a new stream
+router.post("/create", async (req, res) => {
 	try {
-		console.log("Stream creation request:", {
-			userId: req.user.id,
-			body: req.body,
-		});
-
-		const { title, quality, bitrate, resolution, frameRate } = req.body;
-		const stream = await StreamService.createStream(req.user.id, {
+		const userId = req.user.id;
+		const {
 			title,
 			quality,
 			bitrate,
 			resolution,
 			frameRate,
-		});
+			videoCodec,
+			audioCodec,
+			audioRate,
+		} = req.body;
 
-		console.log("Stream created successfully:", stream);
-		res.json(stream);
-	} catch (error) {
-		console.error("Detailed stream creation error:", {
-			message: error.message,
-			stack: error.stack,
-			name: error.name,
-		});
-		res.status(500).json({ error: error.message });
-	}
-});
+		// Create the stream in your database
+		// This is a placeholder - replace with your actual database logic
+		const stream = {
+			id: `stream-${Date.now()}`, // Generate a temporary ID
+			title,
+			userId,
+			quality,
+			bitrate,
+			resolution,
+			frameRate,
+			videoCodec,
+			audioCodec,
+			audioRate,
+			status: "CREATED",
+			createdAt: new Date(),
+		};
 
-router.post("/:streamId/start", isAuthenticated, async (req, res) => {
-	try {
-		const { streamId } = req.params;
-		const stream = await StreamService.startStream(req.user.id, streamId);
-		res.json(stream);
+		// Return the created stream data
+		res.status(201).json(stream);
 	} catch (error) {
-		console.error("Error starting stream:", error);
-		res.status(500).json({ error: error.message });
-	}
-});
-
-router.post("/:streamId/push", isAuthenticated, async (req, res) => {
-	try {
-		const { streamId } = req.params;
-		await StreamService.pushStreamData(req.user.id, streamId, req);
-		res.json({ success: true });
-	} catch (error) {
-		console.error("Error pushing stream data:", error);
-		res.status(500).json({ error: error.message });
-	}
-});
-
-router.post("/:streamId/end", isAuthenticated, async (req, res) => {
-	try {
-		const { streamId } = req.params;
-		const stream = await StreamService.endStream(req.user.id, streamId);
-		res.json(stream);
-	} catch (error) {
-		console.error("Error ending stream:", error);
-		res.status(500).json({ error: error.message });
+		console.error("Stream creation error:", error);
+		res.status(500).json({ error: "Failed to create stream" });
 	}
 });
 

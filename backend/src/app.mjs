@@ -6,16 +6,18 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 import { configurePassport } from "./config/passport.mjs";
 import { configureYouTubeStrategy } from "./config/youtube.mjs";
+import { createServer } from "http";
 import authRoutes from "./routes/auth.routes.mjs";
 import platformRoutes from "./routes/platform.routes.mjs";
 import streamRoutes from "./routes/stream.routes.mjs";
-import { setupWebSocketServer } from "./websocket.mjs";
-import { createServer } from "http";
+import { setupSignalingSocket } from "./socket/signaling.socket.mjs";
 
 // Create Express app and servers
 const app = express();
-const server = createServer(app); // For regular HTTP
-const wsServer = createServer(); // For WebSocket
+const server = createServer(app);
+
+// Set up Socket.io for signaling
+setupSignalingSocket(server);
 
 app.use(
 	cors({
@@ -56,8 +58,17 @@ app.get("/api/auth/status", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/platform", platformRoutes);
-app.use("/stream", streamRoutes);
+app.use("/api/stream", streamRoutes);
 
-setupWebSocketServer(wsServer);
+// Health check endpoint
+app.get("/health", (req, res) => {
+	res.status(200).json({ status: "ok" });
+});
 
-export { app, wsServer };
+// Error handling middleware
+app.use((err, req, res, next) => {
+	console.error("Unhandled error:", err);
+	res.status(500).json({ error: "Internal server error" });
+});
+
+export { app, server };

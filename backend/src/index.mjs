@@ -1,8 +1,21 @@
+// src/index.mjs
 import dotenv from "dotenv";
-import { app, wsServer } from "./app.mjs";
-import nms from "./rtmp-server.mjs";
+import { app, server } from "./app.mjs";
+import NodeMediaServer from "node-media-server";
 
 dotenv.config();
+
+const nmsConfig = {
+	rtmp: {
+		port: 1935,
+		chunk_size: 60000,
+		gop_cache: true,
+		ping: 30,
+		ping_timeout: 60,
+	},
+};
+
+const nms = new NodeMediaServer(nmsConfig);
 
 async function startServer() {
 	try {
@@ -10,16 +23,10 @@ async function startServer() {
 		nms.run();
 		console.log("RTMP server running on port 1935");
 
-		// Start Express server for HTTP/Auth
+		// Start Express server with integrated HTTP and WebSocket
 		const HTTP_PORT = process.env.PORT || 5000;
-		app.listen(HTTP_PORT, () => {
-			console.log(`Express server running on port ${HTTP_PORT}`);
-		});
-
-		// Start WebSocket server on different port
-		const WS_PORT = process.env.WS_PORT || 5001;
-		wsServer.listen(WS_PORT, () => {
-			console.log(`WebSocket server running on port ${WS_PORT}`);
+		server.listen(HTTP_PORT, () => {
+			console.log(`Server running on port ${HTTP_PORT} (HTTP and WebSocket)`);
 		});
 
 		// Log successful startup
@@ -39,11 +46,17 @@ startServer().catch((error) => {
 process.on("SIGTERM", () => {
 	console.log("SIGTERM signal received: closing servers");
 	nms.stop();
-	process.exit(0);
+	server.close(() => {
+		console.log("HTTP/WebSocket server closed");
+		process.exit(0);
+	});
 });
 
 process.on("SIGINT", () => {
 	console.log("SIGINT signal received: closing servers");
 	nms.stop();
-	process.exit(0);
+	server.close(() => {
+		console.log("HTTP/WebSocket server closed");
+		process.exit(0);
+	});
 });

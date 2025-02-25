@@ -1,7 +1,7 @@
 export const streamApi = {
-	async createStream(title: string) {
+	async createStream(title: string, options = { useYouTube: false }) {
 		// First, create the stream in your database
-		const response = await fetch("/api/stream/create", {
+		const response = await fetch("http://localhost:5000/api/stream/create", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -30,38 +30,46 @@ export const streamApi = {
 
 		const streamData = await response.json();
 
-		// Create a YouTube live broadcast
-		const youtubeResponse = await fetch(
-			"/api/platform/youtube/create-broadcast",
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-				body: JSON.stringify({
-					title,
-					description: "Live stream from my app",
-					scheduledStartTime: new Date().toISOString(),
-				}),
-			}
-		);
+		// Only create YouTube broadcast if option is enabled
+		if (options.useYouTube) {
+			try {
+				const youtubeResponse = await fetch(
+					"/api/platform/youtube/create-broadcast",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						credentials: "include",
+						body: JSON.stringify({
+							title,
+							description: "Live stream from my app",
+							scheduledStartTime: new Date().toISOString(),
+						}),
+					}
+				);
 
-		if (!youtubeResponse.ok) {
-			const errorText = await youtubeResponse.text();
-			console.error("YouTube broadcast creation failed:", errorText);
-			throw new Error(`Failed to create YouTube broadcast: ${errorText}`);
+				if (youtubeResponse.ok) {
+					const youtubeData = await youtubeResponse.json();
+					return {
+						...streamData,
+						youtubeData: {
+							rtmpUrl: youtubeData.rtmpUrl,
+							streamKey: youtubeData.streamKey,
+						},
+					};
+				} else {
+					console.warn(
+						"YouTube broadcast creation failed, continuing with local stream only"
+					);
+				}
+			} catch (error) {
+				console.warn("YouTube integration error:", error);
+			}
 		}
 
-		const youtubeData = await youtubeResponse.json();
-
-		return {
-			...streamData,
-			youtubeData: {
-				rtmpUrl: youtubeData.rtmpUrl,
-				streamKey: youtubeData.streamKey,
-			},
-		};
+		// Return stream data without YouTube information
+		return streamData;
 	},
 
 	async startStream(streamId: string) {
@@ -84,19 +92,8 @@ export const streamApi = {
 		const data = await response.json();
 		console.log(`stream start response:`, data);
 
-		// Updated property check to match backend response
-		if (!data.youtubeData?.rtmpUrl || !data.youtubeData?.streamKey) {
-			console.error("full response data:", data);
-			throw new Error("Missing RTMP connection details");
-		}
-
-		return {
-			...data,
-			youtubeData: {
-				rtmpUrl: data.youtubeData.rtmpUrl,
-				streamKey: data.youtubeData.streamKey,
-			},
-		};
+		// Don't require YouTube data
+		return data;
 	},
 
 	async endStream(streamId: string) {
